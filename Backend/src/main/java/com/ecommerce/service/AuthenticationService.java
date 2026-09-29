@@ -5,17 +5,40 @@ import com.ecommerce.dto.request.RegisterRequest;
 import com.ecommerce.dto.response.LoginResponse;
 import com.ecommerce.entity.User;
 import com.ecommerce.repository.UserRepository;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService {
 
+    private static final long ACCESS_TOKEN_SECONDS = 60 * 60;            // 1 giờ
+    private static final long REFRESH_TOKEN_SECONDS = 60 * 60 * 24 * 7;  // 7 ngày
+
     UserRepository userRepository;
+    PasswordEncoder passwordEncoder; // FIX: mã hóa mật khẩu
+
+    @NonFinal
+    @Value("${jwt.signerKey}") // phải dài >= 64 ký tự (HS512)
+    String signerKey;
 
     public String register(RegisterRequest request) {
         if (userRepository.existsByEmailAndIsDelete(request.getEmail(), 0)) {
@@ -24,7 +47,7 @@ public class AuthenticationService {
 
         User newUser = User.builder()
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword())) // FIX: không lưu plain text
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .phone(request.getPhone())
@@ -46,9 +69,13 @@ public class AuthenticationService {
             throw new RuntimeException("Tài khoản của bạn đã bị vô hiệu hóa!");
         }
 
-        if (!currentUser.getPassword().equals(request.getPassword())) {
+        // FIX: so sánh bằng BCrypt thay vì equals()
+        if (!passwordEncoder.matches(request.getPassword(), currentUser.getPassword())) {
             throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác!");
         }
+
+        // FIX: gốc dùng biến "user" không tồn tại -> phải là currentUser
+        String accessToken = generateToken(currentUser, false);
 
         LoginResponse.UserInfo info = LoginResponse.UserInfo.builder()
                 .id(currentUser.getId())
@@ -61,8 +88,31 @@ public class AuthenticationService {
         return LoginResponse.builder()
                 .success(true)
                 .message("Đăng nhập thành công!")
-                .token("dummy-jwt-token")
+                .token(accessToken) // FIX: trả token thật thay vì "dummy-jwt-token"
                 .userInfo(info)
                 .build();
+    }
+
+    // FIX: hàm này được gọi nhưng chưa từng được viết
+    public String generateToken(User user, boolean isRefresh) {
+        long duration = isRefresh ? REFRESH_TOKEN_SECONDS : ACCESS_TOKEN_SECONDS;
+
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .subject(user.getEmail())
+                .issuer("ecommerce.com")
+                .issueTime(new Date())
+                .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
+                .jwtID(UUID.randomUUID().toString())
+                .claim("scope", "USER") // SecurityConfig đọc claim "scope", prefix rỗng
+                .claim("userId", user.getId())
+                .build();
+
+        JWSObject jws = new JWSObject(new JWSHeader(JWSAlgorithm.HS512), new Payload(claims.toJSONObject()));
+        try {
+            jws.sign(new MACSigner(signerKey.getBytes()));
+            return jws.serialize();
+        } catch (JOSEException e) {
+            throw new RuntimeException("Không thể tạo token", e);
+        }
     }
 }
