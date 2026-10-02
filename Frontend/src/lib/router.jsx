@@ -2,7 +2,8 @@ import { createRouter, createRootRoute, createRoute } from "@tanstack/react-rout
 import { lazy } from "react";
 import RootLayout from "../routes/__root.jsx";
 import { productSearchSchema } from "../schemas/product-search.schema";
-
+import { redirect } from "@tanstack/react-router";
+import { hasToken } from "../queries/useMe";
 // Tầng 1B — TanStack Router: tổ chức route + route params có validate.
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -65,7 +66,23 @@ const adminLayoutRoute = createRoute({
   path: "/admin",
   component: lazy(() => import("../routes/admin/dashboard.jsx")),
 });
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/profile",
+  beforeLoad: () => {
+    if (!hasToken()) throw redirect({ to: "/login" });
+  },
+  component: lazy(() => import("../routes/profile.jsx")),
+});
 
+const addressesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/addresses",
+  beforeLoad: () => {
+    if (!hasToken()) throw redirect({ to: "/login" });
+  },
+  component: lazy(() => import("../routes/addresses.jsx")),
+});
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -76,6 +93,8 @@ const routeTree = rootRoute.addChildren([
   checkoutRoute,
   sellerLayoutRoute,
   adminLayoutRoute,
+  profileRoute,
+  addressesRoute,
 ]);
 
 export const router = createRouter({
@@ -83,3 +102,4 @@ export const router = createRouter({
   // Tương đương <Route path="*" element={<h1>404</h1>} /> ở react-router-dom cũ.
   notFoundComponent: () => <h1>404 - Không tìm thấy trang</h1>,
 });
+

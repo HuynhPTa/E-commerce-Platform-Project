@@ -9,16 +9,27 @@ export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
 });
 
+// Các endpoint công khai: KHÔNG gắn token.
+// Backend giải mã Bearer token ở mọi request có header Authorization, kể cả endpoint
+// permitAll, nên token cũ/hỏng sẽ làm login/register bị 401.
+const PUBLIC_PATHS = ["/auth/login", "/auth/register"];
+
+const isPublic = (url) => PUBLIC_PATHS.some((p) => url?.startsWith(p));
+
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  // token !== "undefined": chặn giá trị hỏng do setItem(..., undefined) trước đó
+  if (token && token !== "undefined" && !isPublic(config.url)) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Chỉ xoá token khi request có token bị từ chối; lỗi của login/register thì bỏ qua
+    if (error.response?.status === 401 && !isPublic(error.config?.url)) {
       localStorage.removeItem("access_token");
     }
     return Promise.reject(error);

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 // FIX: bỏ import trùng, sửa các mã code bị trùng nhau, sửa typo và HTTP status sai
 @Getter
 public enum ErrorCode {
+    ADDRESS_NOT_EXISTED(1036, "Địa chỉ không tồn tại", HttpStatus.NOT_FOUND),
     ROOM_EXISTED(1001, "Phòng đã tồn tại", HttpStatus.CONFLICT),
     EMAIL_EXISTED(1002, "Email đã tồn tại", HttpStatus.CONFLICT),
     EMAIL_NOT_EXISTED(1003, "Tài khoản không tồn tại", HttpStatus.NOT_FOUND),

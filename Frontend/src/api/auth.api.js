@@ -16,5 +16,5 @@ export async function register({ email, password, fullName }) {
 
 export async function fetchMe() {
   const { data } = await apiClient.get("/me");
-  return data; // UserResponse
+  return data.result; // UserResponse
 }
