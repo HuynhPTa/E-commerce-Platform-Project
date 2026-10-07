@@ -40,6 +40,8 @@ public enum ErrorCode {
     ROLE_IS_USED(1030, "Vai trò đang được sử dụng không thể xóa", HttpStatus.BAD_REQUEST),
     ACCOUNT_IS_BANED(1031, "Tài khoản đã bị ngưng hoạt động", HttpStatus.BAD_REQUEST),
     INVALID_INPUT(1032, "Thông tin đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    INSUFFICIENT_STOCK(1033, "Không đủ số lượng tồn kho", HttpStatus.CONFLICT),
+    RESOURCE_NOT_FOUND(1034, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
     UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

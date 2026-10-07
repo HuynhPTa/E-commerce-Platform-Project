@@ -11,4 +11,6 @@ export const productSearchSchema = z.object({
   sort: z.enum(["newest", "price_asc", "price_desc", "best_selling"]).default("newest"),
   page: z.coerce.number().int().min(1).default(1),
   q: z.string().optional(),
+}).refine((search) => search.minPrice === undefined || search.maxPrice === undefined || search.minPrice <= search.maxPrice, {
+  message: "Giá tối thiểu phải nhỏ hơn hoặc bằng giá tối đa",
 });

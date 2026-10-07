@@ -2,17 +2,17 @@ import { apiClient } from "./client";
 
 export async function fetchCart() {
   const { data } = await apiClient.get("/cart");
-  return data; // CartItemResponse[]
+  return data.result ?? data; // CartItemResponse[]
 }
 
 export async function addToCart({ variantId, quantity }) {
   const { data } = await apiClient.post("/cart", { variantId, quantity });
-  return data;
+  return data.result ?? data;
 }
 
 export async function updateCartItem({ itemId, quantity }) {
   const { data } = await apiClient.put(`/cart/${itemId}`, { quantity });
-  return data;
+  return data.result ?? data;
 }
 
 export async function removeCartItem(itemId) {
