@@ -6,7 +6,7 @@ import axios from "axios";
 // và không trả lời được câu "nếu bỏ TanStack Query, phải tự quản lý gì?"
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
 });
 
 // Các endpoint công khai: KHÔNG gắn token.

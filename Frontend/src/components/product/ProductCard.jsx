@@ -4,7 +4,9 @@ import { Link } from "@tanstack/react-router";
 // ProductCard KHÔNG tự gọi useProductQuery bên trong. Nơi fetch (route) và nơi
 // hiển thị (component) phải tách biệt — trộn 2 việc này là đúng lỗi "đặt state dư thừa".
 export default function ProductCard({ product }) {
-  const minPrice = Math.min(...product.variants.map((v) => v.priceMinor));
+  const minPrice = product.variants?.length
+    ? Math.min(...product.variants.map((v) => v.priceMinor))
+    : 0;
 
   return (
     <Link to="/products/$productId" params={{ productId: product.id }} className="product-card">

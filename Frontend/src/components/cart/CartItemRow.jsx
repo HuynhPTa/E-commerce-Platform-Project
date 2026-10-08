@@ -7,8 +7,12 @@ export default function CartItemRow({ item, onQuantityChange, onRemove }) {
       <input
         type="number"
         min={1}
+        max={item.stockQuantity}
         value={item.quantity}
-        onChange={(e) => onQuantityChange(Number(e.target.value))}
+        onChange={(e) => {
+          const quantity = Number(e.target.value);
+          if (Number.isInteger(quantity) && quantity >= 1) onQuantityChange(quantity);
+        }}
       />
       <span>{(item.unitPriceMinor * item.quantity).toLocaleString("vi-VN")}₫</span>
       <button onClick={onRemove}>Xoá</button>
