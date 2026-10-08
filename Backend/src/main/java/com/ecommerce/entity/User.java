@@ -22,5 +22,7 @@ public class User {
     String avatar;
     int status;
     int isDelete;
+    @Column(name = "is_admin", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
+    boolean admin;
 
 }

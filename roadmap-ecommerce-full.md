@@ -357,3 +357,6 @@ Frontend/src/
 | F22 | Build production, polish, demo | FE+BE | ⬜ Chưa |
 
 **Việc cần làm ngay** (đang chặn tiến độ): sửa lỗi 404 ở `/register` (đối chiếu path FE `api/auth.api.js` với `@RequestMapping` thật trong `AuthenticationController`), sau đó làm F2 (SecurityConfig+JWT) và F4 (`/me`) để hoàn thiện toàn bộ luồng Auth trước khi sang F5.
+
+
+

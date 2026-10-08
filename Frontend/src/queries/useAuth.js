@@ -36,3 +36,5 @@ export function useLogout() {
     queryClient.removeQueries({ queryKey: ME_KEY });
   };
 }
+const renders = useRef(0);
+renders.current += 1;   // không gây render thêm
