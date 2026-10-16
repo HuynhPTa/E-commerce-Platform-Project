@@ -42,6 +42,14 @@ public enum ErrorCode {
     INVALID_INPUT(1032, "Thông tin đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_STOCK(1033, "Không đủ số lượng tồn kho", HttpStatus.CONFLICT),
     RESOURCE_NOT_FOUND(1034, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
+    CATEGORY_NOT_EXISTED(1040, "Danh mục không tồn tại", HttpStatus.NOT_FOUND),
+    CATEGORY_SLUG_EXISTED(1041, "Slug danh mục đã tồn tại", HttpStatus.CONFLICT),
+    CATEGORY_INVALID_PARENT(1042, "Danh mục cha không hợp lệ (không thể chọn chính nó hoặc danh mục con của nó)", HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_CHILDREN(1043, "Danh mục còn danh mục con, hãy xoá hoặc chuyển danh mục con trước", HttpStatus.CONFLICT),
+    CATEGORY_HAS_PRODUCTS(1044, "Danh mục đang có sản phẩm, không thể xoá", HttpStatus.CONFLICT),
+    SHOP_NOT_EXISTED(1050, "Shop không tồn tại", HttpStatus.NOT_FOUND),
+    SHOP_EXISTED(1051, "Bạn đã đăng ký shop rồi", HttpStatus.CONFLICT),
+    SHOP_NAME_EXISTED(1052, "Tên shop đã được sử dụng", HttpStatus.CONFLICT),
     UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

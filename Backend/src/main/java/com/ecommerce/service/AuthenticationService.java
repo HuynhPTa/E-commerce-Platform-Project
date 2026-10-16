@@ -83,6 +83,7 @@ public class AuthenticationService {
                 .fullName(currentUser.getFirstName() + " " + currentUser.getLastName())
                 .phone(currentUser.getPhone())
                 .avatar(currentUser.getAvatar())
+                .role(currentUser.getRole())
                 .build();
 
         return LoginResponse.builder()
@@ -103,7 +104,8 @@ public class AuthenticationService {
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("scope", "USER") // SecurityConfig đọc claim "scope", prefix rỗng
+                // SecurityConfig đọc claim "scope", prefix rỗng -> authority "USER" hoặc "ADMIN"
+                .claim("scope", user.getRole() == null ? "USER" : user.getRole())
                 .claim("userId", user.getId())
                 .build();
 

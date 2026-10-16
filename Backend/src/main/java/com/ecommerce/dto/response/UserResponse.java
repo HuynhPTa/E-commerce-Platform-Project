@@ -19,4 +19,5 @@ public class UserResponse {
     String phone;
     LocalDate dateOfBirth;
     String avatar;
+    String role;
 }

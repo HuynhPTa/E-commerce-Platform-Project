@@ -42,6 +42,7 @@ public class UserService {
                 .phone(u.getPhone())
                 .dateOfBirth(u.getDateOfBirth())
                 .avatar(u.getAvatar())
+                .role(u.getRole() == null ? "USER" : u.getRole())
                 .build();
     }
 }
