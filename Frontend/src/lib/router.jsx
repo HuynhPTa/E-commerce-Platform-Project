@@ -2,10 +2,16 @@ import { createRouter, createRootRoute, createRoute } from "@tanstack/react-rout
 import { lazy } from "react";
 import RootLayout from "../routes/__root.jsx";
 import { productSearchSchema } from "../schemas/product-search.schema";
+import { shopProductsSearchSchema } from "../schemas/shop.schema";
 import { redirect } from "@tanstack/react-router";
 import { hasToken } from "../queries/useMe";
 // Tầng 1B — TanStack Router: tổ chức route + route params có validate.
 const rootRoute = createRootRoute({ component: RootLayout });
+
+// Trang cần đăng nhập: chưa có token thì chuyển về /login trước khi render
+const requireAuth = () => {
+  if (!hasToken()) throw redirect({ to: "/login" });
+};
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -52,37 +58,78 @@ const checkoutRoute = createRoute({
   component: lazy(() => import("../routes/checkout.jsx")),
 });
 
+// Trang công khai của shop: /shops/12?sort=best_selling&page=2
+const shopRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/shops/$shopId",
+  validateSearch: shopProductsSearchSchema,
+  component: lazy(() => import("../routes/shops/$shopId.jsx")),
+});
+
+// Form đăng ký mở shop — dùng layout người mua (người dùng chưa có shop)
+const sellerRegisterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/seller/register",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/seller/register.jsx")),
+});
+
 // Tầng 1B — Code splitting: bundle seller và admin tách hẳn khỏi bundle buyer.
 // Kiểm chứng thật (không phải chỉ import lazy() cho có): mở Network tab sau khi
 // build, xác nhận có file seller-*.js / admin-*.js riêng, không nằm chung main.js.
 const sellerLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/seller",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/seller/layout.jsx")),
+});
+
+const sellerIndexRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/",
   component: lazy(() => import("../routes/seller/dashboard.jsx")),
 });
 
+// Admin: layout (sidebar + kiểm tra role) bọc các trang con qua <Outlet/>
 const adminLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/admin/layout.jsx")),
+});
+
+const adminIndexRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/",
   component: lazy(() => import("../routes/admin/dashboard.jsx")),
 });
+
+const adminCategoriesRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/categories",
+  component: lazy(() => import("../routes/admin/categories.jsx")),
+});
+
+const adminShopsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/shops",
+  component: lazy(() => import("../routes/admin/shops.jsx")),
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profile",
-  beforeLoad: () => {
-    if (!hasToken()) throw redirect({ to: "/login" });
-  },
+  beforeLoad: requireAuth,
   component: lazy(() => import("../routes/profile.jsx")),
 });
 
 const addressesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/addresses",
-  beforeLoad: () => {
-    if (!hasToken()) throw redirect({ to: "/login" });
-  },
+  beforeLoad: requireAuth,
   component: lazy(() => import("../routes/addresses.jsx")),
 });
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -91,8 +138,10 @@ const routeTree = rootRoute.addChildren([
   productDetailRoute,
   cartRoute,
   checkoutRoute,
-  sellerLayoutRoute,
-  adminLayoutRoute,
+  shopRoute,
+  sellerRegisterRoute,
+  sellerLayoutRoute.addChildren([sellerIndexRoute]),
+  adminLayoutRoute.addChildren([adminIndexRoute, adminCategoriesRoute, adminShopsRoute]),
   profileRoute,
   addressesRoute,
 ]);
@@ -100,6 +149,10 @@ const routeTree = rootRoute.addChildren([
 export const router = createRouter({
   routeTree,
   // Tương đương <Route path="*" element={<h1>404</h1>} /> ở react-router-dom cũ.
-  notFoundComponent: () => <h1>404 - Không tìm thấy trang</h1>,
+  notFoundComponent: () => (
+    <div className="center-box">
+      <h1 style={{ color: "var(--text)" }}>404 — Không tìm thấy trang</h1>
+      <a href="/" className="btn btn-primary">Về trang chủ</a>
+    </div>
+  ),
 });
-

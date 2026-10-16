@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ImageOff } from "lucide-react";
 
 // Tầng 1A — "Component/props/hooks, tránh state dư thừa".
 // ProductCard KHÔNG tự gọi useProductQuery bên trong. Nơi fetch (route) và nơi
@@ -10,7 +11,11 @@ export default function ProductCard({ product }) {
 
   return (
     <Link to="/products/$productId" params={{ productId: product.id }} className="product-card">
-      <img src={product.thumbnailUrl} alt={product.name} loading="lazy" />
+      {product.thumbnailUrl ? (
+        <img src={product.thumbnailUrl} alt={product.name} loading="lazy" />
+      ) : (
+        <div className="product-card-noimg"><ImageOff size={32} /></div>
+      )}
       <h3>{product.name}</h3>
       <p>{(minPrice / 1).toLocaleString("vi-VN")}₫</p>
       <span>⭐ {product.ratingAvg.toFixed(1)} ({product.ratingCount})</span>
