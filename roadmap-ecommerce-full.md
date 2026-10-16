@@ -337,8 +337,8 @@ Frontend/src/
 | F2 | JWT thật + `SecurityConfig` chặn 401 | BE | ⬜ Chưa |
 | F3 | `useLoginMutation`, `useRegisterMutation`, invalidate `['user','me']` | FE | ✅ Xong (đang lỗi 404 do path lệch) |
 | F4 | `UserController /me`; `GlobalExceptionHandler` | BE | ⬜ Chưa |
-| F5 | `categories` — entity, migration, CRUD API + FE | FE+BE | ⬜ Chưa |
-| F6 | `shops` — entity, migration, đăng ký shop | FE+BE | ⬜ Chưa |
+| F5 | `categories` — entity, migration, CRUD API + FE | FE+BE | ✅ Xong (cây danh mục, admin CRUD, sidebar/dropdown) |
+| F6 | `shops` — entity, migration, đăng ký shop | FE+BE | ✅ Xong (đăng ký, trang public, admin duyệt/khoá) |
 | F7 | `products`+`product_variants`+`product_images` | FE+BE | ⬜ Chưa |
 | F8 | Trang danh sách + chi tiết sản phẩm | FE | ⬜ Chưa (khung đã có, chờ BE) |
 | F9 | Tìm kiếm + lọc + phân trang | FE+BE | ⬜ Chưa (validateSearch đã có ở FE) |

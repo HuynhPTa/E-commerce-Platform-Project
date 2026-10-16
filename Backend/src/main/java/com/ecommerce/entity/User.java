@@ -25,4 +25,9 @@ public class User {
     @Column(name = "is_admin", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
     boolean admin;
 
+    // USER | ADMIN — được đưa vào claim "scope" của JWT để dùng với @PreAuthorize
+    @Builder.Default
+    @Column(nullable = false, length = 16, columnDefinition = "varchar(16) not null default 'USER'")
+    String role = "USER";
+
 }

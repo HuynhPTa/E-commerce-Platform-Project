@@ -21,9 +21,10 @@ public class ProductController {
             @RequestParam(defaultValue = "newest") String sort,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(required = false) String q) {
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer shop) {
         return ApiResponse.<PageResponse<ProductResponse>>builder().code(1000)
-                .result(productService.search(category, minPrice, maxPrice, sort, page, size, q)).build();
+                .result(productService.search(category, minPrice, maxPrice, sort, page, size, q, shop)).build();
     }
 
     @GetMapping("/{id}")

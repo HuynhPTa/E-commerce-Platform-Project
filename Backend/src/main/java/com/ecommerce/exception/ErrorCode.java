@@ -4,7 +4,6 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
-// FIX: bỏ import trùng, sửa các mã code bị trùng nhau, sửa typo và HTTP status sai
 @Getter
 public enum ErrorCode {
     ADDRESS_NOT_EXISTED(1036, "Địa chỉ không tồn tại", HttpStatus.NOT_FOUND),
@@ -42,11 +41,27 @@ public enum ErrorCode {
     INVALID_INPUT(1032, "Thông tin đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_STOCK(1033, "Không đủ số lượng tồn kho", HttpStatus.CONFLICT),
     RESOURCE_NOT_FOUND(1034, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
-    UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR),
-    CHECKOUT_SESSION_NOT_FOUND(1005, "Không tìm thấy phiên thanh toán", HttpStatus.NOT_FOUND),
-    CART_EMPTY(1006, "Giỏ hàng trống", HttpStatus.BAD_REQUEST),
-    INVALID_CART_ITEM(1007, "Có sản phẩm không thuộc giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
-    PRODUCT_NOT_AVAILABLE(1008, "Sản phẩm hiện không còn bán", HttpStatus.BAD_REQUEST);
+
+    // --- Checkout Module (Công việc của bạn) ---
+    CHECKOUT_SESSION_NOT_FOUND(1060, "Không tìm thấy phiên thanh toán", HttpStatus.NOT_FOUND),
+    CART_EMPTY(1061, "Giỏ hàng trống", HttpStatus.BAD_REQUEST),
+    INVALID_CART_ITEM(1062, "Có sản phẩm không thuộc giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_AVAILABLE(1063, "Sản phẩm hiện không còn bán", HttpStatus.BAD_REQUEST),
+
+    // --- Category Module (Công việc của Hoàng) ---
+    CATEGORY_NOT_EXISTED(1040, "Danh mục không tồn tại", HttpStatus.NOT_FOUND),
+    CATEGORY_SLUG_EXISTED(1041, "Slug danh mục đã tồn tại", HttpStatus.CONFLICT),
+    CATEGORY_INVALID_PARENT(1042, "Danh mục cha không hợp lệ (không thể chọn chính nó hoặc danh mục con của nó)", HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_CHILDREN(1043, "Danh mục còn danh mục con, hãy xoá hoặc chuyển danh mục con trước", HttpStatus.CONFLICT),
+    CATEGORY_HAS_PRODUCTS(1044, "Danh mục đang có sản phẩm, không thể xoá", HttpStatus.CONFLICT),
+
+    // --- Shop Module (Công việc của Hoàng) ---
+    SHOP_NOT_EXISTED(1050, "Shop không tồn tại", HttpStatus.NOT_FOUND),
+    SHOP_EXISTED(1051, "Bạn đã đăng ký shop rồi", HttpStatus.CONFLICT),
+    SHOP_NAME_EXISTED(1052, "Tên shop đã được sử dụng", HttpStatus.CONFLICT),
+
+    UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
+
     private final int code;
     private final String message;
     private final HttpStatusCode statusCode;

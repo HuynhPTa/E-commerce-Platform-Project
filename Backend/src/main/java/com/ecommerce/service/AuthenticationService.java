@@ -103,7 +103,7 @@ public class AuthenticationService {
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("scope", user.isAdmin() ? "ADMIN" : "USER") // SecurityConfig đọc claim "scope", prefix rỗng
+                .claim("scope", "USER") // SecurityConfig đọc claim "scope", prefix rỗng
                 .claim("userId", user.getId())
                 .build();
 

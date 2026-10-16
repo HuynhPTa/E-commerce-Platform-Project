@@ -2,6 +2,8 @@ package com.ecommerce.exception;
 
 import com.ecommerce.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -39,6 +41,15 @@ public class GlobalExceptionHandler {
         apiResponse.setMessage(fieldError != null && fieldError.getDefaultMessage() != null
                 ? fieldError.getDefaultMessage()
                 : ErrorCode.INVALID_INPUT.getMessage());
+        return ResponseEntity.badRequest().body(apiResponse);
+    }
+
+    // Body JSON sai định dạng (vd status không thuộc enum) hoặc tham số sai kiểu -> 400 thay vì 500
+    @ExceptionHandler(value = {HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    ResponseEntity<ApiResponse<String>> handlingBadRequest(Exception exception) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(ErrorCode.INVALID_INPUT.getCode());
+        apiResponse.setMessage(ErrorCode.INVALID_INPUT.getMessage());
         return ResponseEntity.badRequest().body(apiResponse);
     }
 

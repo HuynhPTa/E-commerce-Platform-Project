@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: ecommerce-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ecommerce_db
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Giữ mật khẩu root trống
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Tự động nạp file SQL khởi tạo (nếu có file seed .sql)
+      - ./Backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  mysql_data:

@@ -32,8 +32,12 @@ export function useLogout() {
   const queryClient = useQueryClient();
   return () => {
     localStorage.removeItem("access_token");
-    // Xoá cache để người dùng kế tiếp không thấy hồ sơ của người trước
+    // Xoá cache để người dùng kế tiếp không thấy hồ sơ / shop / giỏ hàng của người trước
     queryClient.removeQueries({ queryKey: ME_KEY });
+    queryClient.removeQueries({ queryKey: ["shop", "me"] });
+    queryClient.removeQueries({ queryKey: ["cart"] });
+    queryClient.removeQueries({ queryKey: ["addresses"] });
+    queryClient.removeQueries({ queryKey: ["admin"] });
   };
 }
 

@@ -22,27 +22,35 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private static final int MAX_PAGE_SIZE = 100;
     private final ProductRepository productRepository;
+    private final CategoryService categoryService;
 
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> search(String category, Long minPrice, Long maxPrice,
-                                                String sort, int page, int size, String q) {
+                                                String sort, int page, int size, String q, Integer shop) {
         if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
             throw new AppException(ErrorCode.INVALID_INPUT);
         }
+        // ?category=<slug|id> -> gồm cả các danh mục con cháu trong cây
+        Set<String> categoryKeys = category == null || category.isBlank()
+                ? null : categoryService.descendantKeys(category.trim());
         int safePage = Math.max(1, page);
         int safeSize = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
         String safeSort = sort == null ? "newest" : sort.toLowerCase(Locale.ROOT);
         Specification<Product> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(cb.upper(root.get("status")), "ACTIVE"));
-            if (category != null && !category.isBlank()) {
-                predicates.add(cb.equal(root.get("categoryId"), category));
+            if (categoryKeys != null) {
+                predicates.add(root.get("categoryId").in(categoryKeys));
+            }
+            if (shop != null) {
+                predicates.add(cb.equal(root.get("shopId"), String.valueOf(shop)));
             }
             if (q != null && !q.isBlank()) {
                 String term = "%" + q.trim().toLowerCase(Locale.ROOT) + "%";
