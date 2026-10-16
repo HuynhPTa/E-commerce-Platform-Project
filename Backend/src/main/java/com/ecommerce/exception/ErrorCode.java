@@ -42,8 +42,11 @@ public enum ErrorCode {
     INVALID_INPUT(1032, "Thông tin đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_STOCK(1033, "Không đủ số lượng tồn kho", HttpStatus.CONFLICT),
     RESOURCE_NOT_FOUND(1034, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
-    UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
-
+    UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR),
+    CHECKOUT_SESSION_NOT_FOUND(1005, "Không tìm thấy phiên thanh toán", HttpStatus.NOT_FOUND),
+    CART_EMPTY(1006, "Giỏ hàng trống", HttpStatus.BAD_REQUEST),
+    INVALID_CART_ITEM(1007, "Có sản phẩm không thuộc giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_AVAILABLE(1008, "Sản phẩm hiện không còn bán", HttpStatus.BAD_REQUEST);
     private final int code;
     private final String message;
     private final HttpStatusCode statusCode;

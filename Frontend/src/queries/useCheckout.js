@@ -1,22 +1,62 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { submitCheckout } from "../api/checkout.api";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+import { checkout, createPaymentUrl, fetchAddresses, fetchCart } from '../api/checkout.api'
+import { MOCK_CART } from './mockCart'
 
-// Tầng 1B — "Không optimistic cho đặt hàng vì liên quan tiền".
-// Khác hẳn useAddToCartMutation: ở đây KHÔNG có onMutate optimistic.
-// Lý do: nếu optimistic rồi rollback, người dùng có thể đã bấm "thanh toán" 2 lần,
-// hoặc thấy đơn "thành công" trong khi thực ra BE vừa từ chối vì hết hàng/thanh toán lỗi.
-// Phải chờ response thật từ BE rồi mới điều hướng sang trang kết quả/redirectUrl.
-export function useCheckoutMutation() {
-  const queryClient = useQueryClient();
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_CART === 'true'
+
+/** Giỏ hàng cho trang checkout. Cùng key ['cart'] với CV4 nên dùng chung cache. */
+export function useCheckoutCart() {
+  return useQuery({
+    queryKey: ['cart'],
+    queryFn: () => (USE_MOCK ? Promise.resolve(MOCK_CART) : fetchCart()),
+    staleTime: 0, // sai giá / sai tồn kho nên luôn refetch nền
+  })
+}
+
+export function useAddresses() {
+  return useQuery({
+    queryKey: ['addresses'],
+    queryFn: fetchAddresses,
+    enabled: !USE_MOCK,
+  })
+}
+
+/**
+ * Checkout KHÔNG optimistic: liên quan tiền và tồn kho, phải chờ BE xác nhận.
+ * Thành công -> invalidate cache liên quan -> xin URL cổng thanh toán -> chuyển hướng.
+ */
+export function useCheckout() {
+  const qc = useQueryClient()
+  const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: submitCheckout,
-    onSuccess: () => {
-      // Giỏ hàng đã được BE xoá sau khi tạo order thành công → đồng bộ lại
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
-      queryClient.invalidateQueries({ queryKey: ["orders", "me"] });
+    mutationFn: checkout,
+    onSuccess: async (session) => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['cart'] }),
+        qc.invalidateQueries({ queryKey: ['orders', 'me'] }),
+        qc.invalidateQueries({ queryKey: ['product'] }), // tồn kho đổi: mọi ['product', id]
+      ])
+
+      let redirectUrl
+      try {
+        const res = await createPaymentUrl({
+          checkoutSessionId: session.checkoutSessionId,
+          provider: session.paymentMethod,
+        })
+        redirectUrl = res?.redirectUrl
+      } catch {
+        // Đơn đã tạo nhưng chưa lấy được URL (CV6 chưa xong / lỗi mạng):
+        // vẫn sang trang kết quả để người dùng thấy trạng thái PENDING.
+      }
+
+      if (redirectUrl) {
+        window.location.assign(redirectUrl)
+      } else {
+        navigate({ to: '/payment/return', search: { checkoutId: session.checkoutSessionId } })
+      }
     },
-    // Không có onMutate/onError rollback vì không có gì để rollback —
-    // UI chỉ hiển thị loading cho tới khi có response thật.
-  });
+    // lỗi (vd 409 hết hàng): không điều hướng, trang tự hiển thị mutation.error
+  })
 }

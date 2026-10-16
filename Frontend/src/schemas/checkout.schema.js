@@ -1,15 +1,19 @@
-import { z } from "zod";
+import { z } from 'zod'
 
-// Tầng 1B — "Form/validation nếu ứng dụng có biểu mẫu phức tạp".
-// Điều kiện tối thiểu: >=4 field liên quan nhau (địa chỉ, SĐT, phương thức thanh toán, ghi chú).
+export const PAYMENT_METHODS = ['VNPAY', 'MOMO']
+
+// Quy tắc khớp với CheckoutRequest.java (BE vẫn validate lại)
 export const checkoutSchema = z.object({
-  recipientName: z.string().min(2, "Tên người nhận quá ngắn"),
-  phone: z
+  recipientName: z
     .string()
-    .regex(/^0\d{9,10}$/, "Số điện thoại Việt Nam không hợp lệ"),
-  fullAddress: z.string().min(10, "Địa chỉ cần chi tiết hơn (số nhà, đường, phường/xã)"),
-  paymentMethod: z.enum(["VNPAY", "MOMO"], {
-    errorMap: () => ({ message: "Chọn một phương thức thanh toán" }),
-  }),
-  note: z.string().max(200, "Ghi chú tối đa 200 ký tự").optional(),
-});
+    .trim()
+    .min(1, 'Vui lòng nhập tên người nhận')
+    .max(120, 'Tên người nhận tối đa 120 ký tự'),
+  phone: z.string().regex(/^[0-9]{9,11}$/, 'Số điện thoại phải gồm 9 đến 11 chữ số'),
+  fullAddress: z
+    .string()
+    .trim()
+    .min(1, 'Vui lòng nhập địa chỉ nhận hàng')
+    .max(500, 'Địa chỉ tối đa 500 ký tự'),
+  paymentMethod: z.enum(PAYMENT_METHODS, { message: 'Vui lòng chọn cổng thanh toán' }),
+})

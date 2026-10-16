@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from User u where u.email = :email and u.isDelete = 0")
     Optional<User> findByEmailForUpdate(@Param("email") String email);
+
+
 }
