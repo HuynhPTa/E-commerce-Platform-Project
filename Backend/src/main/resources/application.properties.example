@@ -1,0 +1,23 @@
+server.port=8080
+
+# Ket noi MySQL
+spring.datasource.url=jdbc:mysql://localhost:3306/ecommerce_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# Neu DB la MariaDB (XAMPP) thi bo comment dong duoi de het warning HHH000511
+# spring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect
+
+# JWT: phai >= 64 ky tu (66 ky tu ben duoi)
+jwt.signerKey=DOI_THANH_CHUOI_NGAU_NHIEN_DAI_IT_NHAT_64_KY_TU
+
+# Google OAuth2: dien gia tri that khi muon dang nhap Google, tam thoi de gia tri gia cho app chay duoc
+spring.security.oauth2.client.registration.google.client-id=dummy-client-id
+spring.security.oauth2.client.registration.google.client-secret=dummy-client-secret
+spring.security.oauth2.client.registration.google.scope=email,profile
+
+# Frontend URL (dung de redirect sau khi dang nhap Google)
+app.frontend-url=http://localhost:5173

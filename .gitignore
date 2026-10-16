@@ -12,3 +12,4 @@ Backend/.mvn/
 *.iml
 .DS_Store
 *.log
+Backend/src/main/resources/application.properties

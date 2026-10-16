@@ -23,4 +23,9 @@ public class User {
     int status;
     int isDelete;
 
+    // USER | ADMIN — được đưa vào claim "scope" của JWT để dùng với @PreAuthorize
+    @Builder.Default
+    @Column(nullable = false, length = 16, columnDefinition = "varchar(16) not null default 'USER'")
+    String role = "USER";
+
 }

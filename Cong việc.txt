@@ -1,0 +1,62 @@
+================================================================================
+KẾ HOẠCH PHÂN CHIA NHIỆM VỤ DỰ ÁN
+================================================================================
+
+--------------------------------------------------------------------------------
+CÔNG VIỆC 1: USER, PROFILE VÀ ĐỊA CHỈ (F4, F11)
+--------------------------------------------------------------------------------
+- Người phụ trách: A
+- Nhiệm vụ Backend:
+  + Xây dựng API GET /api/me và PUT /api/me để xem/cập nhật thông tin tài khoản.
+  + Thiết kế Entity, Migration script và API CRUD /api/addresses (người dùng chỉ được sửa/xóa địa chỉ của chính mình; đảm bảo mỗi tài khoản chỉ có 1 địa chỉ mặc định).
+  + Chuẩn hóa GlobalExceptionHandler xử lý các ngoại lệ toàn hệ thống.
+  + Tạo dữ liệu mẫu (seeding) tài khoản Admin phục vụ mục đích kiểm thử.
+- Nhiệm vụ Frontend:
+  + Khắc phục lỗi 404 trang /register (đối chiếu chính xác route FE với @RequestMapping của BE).
+  + Tích hợp hook useMe với cache key ['user', 'me'].
+  + Xây dựng giao diện trang Hồ sơ cá nhân (Profile).
+  + Xây dựng giao diện trang Quản lý địa chỉ nhận hàng.
+
+--------------------------------------------------------------------------------
+CÔNG VIỆC 2: CATEGORY VÀ SHOP (F5, F6)
+--------------------------------------------------------------------------------
+- Người phụ trách: B
+- Nhiệm vụ Backend:
+  + Thiết kế Entity Category (hỗ trợ phân cấp cây với parent_id, slug URL-friendly) và bộ API CRUD; phân quyền chỉ Admin được thêm/sửa/xóa qua @PreAuthorize.
+  + Thiết kế Entity Shop (ràng buộc quan hệ 1 User - 1 Shop).
+  + Xây dựng API: POST /api/shops (đăng ký shop), GET /api/shops/{id} (thông tin shop), PATCH /api/admin/shops/{id}/status (Admin duyệt/khóa shop).
+- Nhiệm vụ Frontend:
+  + Xây dựng UI Sidebar/Dropdown hiển thị danh mục sản phẩm theo cấp bậc.
+  + Xây dựng Form đăng ký mở Shop cho người bán.
+  + Xây dựng Trang public hiển thị thông tin và sản phẩm của từng Shop.
+  + Xây dựng các trang quản trị (Admin): categories.jsx (quản lý danh mục) và shops.jsx (phê duyệt shop).
+
+--------------------------------------------------------------------------------
+CÔNG VIỆC 3: PRODUCT + VARIANT + ẢNH (F7, F8)
+--------------------------------------------------------------------------------
+- Người phụ trách: C
+- Nhiệm vụ Backend:
+  + Thiết kế Entity, Migration script và Repository cho Product, ProductVariant, ProductImage.
+  + Xây dựng bộ API CRUD sản phẩm dành cho Seller (kiểm tra điều kiện shop.user_id == currentUser.id).
+  + Xây dựng logic upload và lưu trữ hình ảnh sản phẩm.
+  + Đảm bảo logic nghiệp vụ: mỗi sản phẩm khi tạo luôn có ít nhất một variant mặc định.
+- Nhiệm vụ Frontend:
+  + Xây dựng Form CRUD sản phẩm dành cho Seller (tích hợp upload ảnh).
+  + Xây dựng Component VariantSelector (chọn phân loại màu sắc, kích thước, biến thể).
+  + Xây dựng Trang danh sách sản phẩm và Trang chi tiết sản phẩm phía người mua.
+
+--------------------------------------------------------------------------------
+CÔNG VIỆC 4: CART VÀ SEARCH/FILTER (F10, F9)
+--------------------------------------------------------------------------------
+- Người phụ trách: D
+- Nhiệm vụ Backend:
+  + Xây dựng trọn bộ API GET/POST/PUT/DELETE /api/cart:
+    * Khi thêm sản phẩm đã tồn tại trong giỏ thì cộng dồn số lượng.
+    * Ném ngoại lệ InsufficientStockException khi tồn kho không đủ đáp ứng.
+  + Xây dựng API tìm kiếm, lọc và phân trang:
+    GET /api/products?category=&minPrice=&maxPrice=&sort=&page=&q= sử dụng JPA Specification.
+- Nhiệm vụ Frontend:
+  + Nối hook useCart (sử dụng optimistic update sẵn có) với API Backend thực tế.
+  + Xây dựng giao diện Trang giỏ hàng với tính năng gom nhóm sản phẩm theo từng Shop.
+  + Xây dựng giao diện Trang tìm kiếm và lọc sản phẩm (tích hợp validateSearch và useDebounce đã có sẵn).
+================================================================================

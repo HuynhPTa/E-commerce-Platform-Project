@@ -1,0 +1,40 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Ecommerce Architecture" id="arch2">
+    <mxGraphModel dx="1725" dy="828" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pay" parent="1" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontSize=13;" value="VNPay + Momo (Sandbox)" vertex="1">
+          <mxGeometry height="120" width="260" x="385" as="geometry" />
+        </mxCell>
+        <mxCell id="fe" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontSize=12;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;Frontend (React 19 + Vite) :5173&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;routes (TanStack Router)&lt;br/&gt;queries (TanStack Query)&lt;br/&gt;api (axios + JWT interceptor)&lt;br/&gt;schemas (Zod + React Hook Form)&lt;br/&gt;components" vertex="1">
+          <mxGeometry height="131" width="270" x="-190" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="be" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontSize=12;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;Backend (Spring Boot 3.3.3) :8080&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;SecurityConfig / JWT filter&lt;br/&gt;Controller (REST /api/...)&lt;br/&gt;Service (@Transactional)&lt;br/&gt;Repository (Spring Data JPA)&lt;br/&gt;Entity (Hibernate 6)&lt;br/&gt;GlobalExceptionHandler" vertex="1">
+          <mxGeometry height="148" width="270" x="380" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="db" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontSize=12;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;MySQL 8 (ecommerce)&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;users&lt;br/&gt;shops&lt;br/&gt;categories&lt;br/&gt;products&lt;br/&gt;product_variants&lt;br/&gt;product_images&lt;br/&gt;addresses&lt;br/&gt;cart_items&lt;br/&gt;checkout_sessions&lt;br/&gt;orders&lt;br/&gt;order_items&lt;br/&gt;payments&lt;br/&gt;reviews" vertex="1">
+          <mxGeometry height="267" width="240" x="900" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontSize=12;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;S3-compatible Storage (R2 / MinIO)&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;Ảnh sản phẩm&lt;br/&gt;Logo shop" vertex="1">
+          <mxGeometry height="80" width="270" x="380" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="fe" style="endArrow=classic;dashed=1;html=1;rounded=0;fontSize=12;labelBackgroundColor=#ffffff;fontColor=#000000;strokeColor=#000000;startArrow=classic;" target="be" value="REST API (JSON + Bearer JWT)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="be" style="endArrow=classic;dashed=1;html=1;rounded=0;fontSize=12;labelBackgroundColor=#ffffff;fontColor=#000000;strokeColor=#000000;startArrow=classic;" target="db" value="JPA / Hibernate (SQL)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="be" style="endArrow=classic;dashed=1;html=1;rounded=0;fontSize=12;labelBackgroundColor=#ffffff;fontColor=#000000;strokeColor=#000000;" target="s3" value="Upload ảnh (S3 API)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="be" style="endArrow=classic;dashed=1;html=1;rounded=0;fontSize=12;labelBackgroundColor=#ffffff;fontColor=#000000;strokeColor=#000000;startArrow=classic;" target="pay" value="Tạo URL thanh toán / IPN callback">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="fe" style="endArrow=classic;dashed=1;html=1;rounded=0;fontSize=12;labelBackgroundColor=#ffffff;fontColor=#000000;strokeColor=#000000;" target="pay" value="Redirect thanh toán">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
