@@ -6,7 +6,8 @@
  *   node scripts/seed-demo.mjs
  *
  * Script idempotent: chạy lại sẽ dùng tài khoản/shop/sản phẩm đã có, chỉ bổ sung
- * phần còn thiếu (variant, ảnh, địa chỉ) thay vì tạo bản ghi trùng.
+ * phần còn thiếu (variant, ảnh, địa chỉ) thay vì tạo bản ghi trùng. Nếu DB còn
+ * bản ghi ảnh nhưng file upload đã bị xoá, script upload lại ảnh demo.
  *
  * Lưu ý: shop được duyệt qua API Admin; nếu JWT admin hiện bị lỗi scope=USER (403)
  * thì script tự fallback sang SQL local qua Docker. Fallback chỉ dành cho môi trường dev.
@@ -15,6 +16,13 @@ import { spawnSync } from "node:child_process";
 import { deflateSync } from "node:zlib";
 
 const API_BASE = process.env.API_BASE ?? "http://localhost:8080/api";
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return "";
+  }
+})();
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD ?? "Demo@123";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@markethub.vn";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Admin@123";
@@ -331,6 +339,21 @@ function variantBody(variant, imageUrl = null) {
   };
 }
 
+async function hasUnreachableImage(images) {
+  if (!images.length || !API_ORIGIN) return false;
+
+  for (const image of images) {
+    const url = image.url?.startsWith("http") ? image.url : `${API_ORIGIN}${image.url ?? ""}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return true;
+    } catch {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function ensureProduct(token, productDef, categories) {
   const category = requireCategory(categories, productDef.category);
   let product = await findProduct(token, productDef.name);
@@ -386,7 +409,13 @@ async function ensureProduct(token, productDef, categories) {
 
   product = (await api(`/seller/products/${product.id}`, { token })).result;
   let imageUploaded = false;
-  if ((product.images ?? []).length === 0) {
+  const images = product.images ?? [];
+  const needsImage = images.length === 0 || await hasUnreachableImage(images);
+  if (needsImage) {
+    // File upload bị xoá nhưng DB vẫn còn bản ghi: xoá bản ghi cũ rồi upload lại.
+    for (const image of images) {
+      await api(`/seller/products/${product.id}/images/${image.id}`, { method: "DELETE", token });
+    }
     const png = createDemoPng(productDef.theme);
     const form = new FormData();
     form.append("file", new Blob([png], { type: "image/png" }), `demo-${slugify(productDef.name)}.png`);

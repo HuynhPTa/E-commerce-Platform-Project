@@ -1,8 +1,10 @@
+import { assetUrl, onImageError } from "../../lib/assetUrl";
+
 // Tầng 1A — chỉ nhận data qua props, không tự gọi hook query bên trong.
 export default function CartItemRow({ item, onQuantityChange, onRemove }) {
   return (
     <div className="cart-item-row">
-      <img src={item.thumbnailUrl} alt={item.productName} />
+      <img src={assetUrl(item.thumbnailUrl)} alt={item.productName} onError={onImageError} />
       <span>{item.productName}</span>
       <input
         type="number"
