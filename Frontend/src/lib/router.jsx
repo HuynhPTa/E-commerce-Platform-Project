@@ -102,6 +102,25 @@ const sellerIndexRoute = createRoute({
   component: lazy(() => import("../routes/seller/dashboard.jsx")),
 });
 
+// Job 3 — quản lý sản phẩm cho Seller (lazy load giống dashboard)
+const sellerProductsRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/products",
+  component: lazy(() => import("../routes/seller/products/index.jsx")),
+});
+
+const sellerProductNewRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/products/new",
+  component: lazy(() => import("../routes/seller/products/new.jsx")),
+});
+
+const sellerProductDetailRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/products/$productId",
+  component: lazy(() => import("../routes/seller/products/$productId.jsx")),
+});
+
 // Admin: layout (sidebar + kiểm tra role) bọc các trang con qua <Outlet/>
 const adminLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -153,7 +172,12 @@ const routeTree = rootRoute.addChildren([
   checkoutResultRoute,
   shopRoute,
   sellerRegisterRoute,
-  sellerLayoutRoute.addChildren([sellerIndexRoute]),
+  sellerLayoutRoute.addChildren([
+    sellerIndexRoute,
+    sellerProductsRoute,
+    sellerProductNewRoute,
+    sellerProductDetailRoute,
+  ]),
   adminLayoutRoute.addChildren([adminIndexRoute, adminCategoriesRoute, adminShopsRoute]),
   profileRoute,
   addressesRoute,

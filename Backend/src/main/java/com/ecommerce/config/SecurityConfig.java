@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
                         // chỉ trang shop theo id là công khai; /api/shops/me vẫn phải đăng nhập
                         .requestMatchers(HttpMethod.GET, "/api/shops/{id:\\d+}").permitAll()
