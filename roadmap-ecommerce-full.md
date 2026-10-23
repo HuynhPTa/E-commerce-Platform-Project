@@ -334,29 +334,48 @@ Frontend/src/
 |---|------|-------|---|
 | F0 | Setup Vite+React19+TanStack, kết nối Spring Boot+MySQL | FE+BE | ✅ Xong |
 | F1 | Cài & wire TanStack Query/Router; `queryClient.js`, `router.jsx`; `App.jsx` bọc Provider + ErrorBoundary | FE | ✅ Xong |
-| F2 | JWT thật + `SecurityConfig` chặn 401 | BE | ⬜ Chưa |
-| F3 | `useLoginMutation`, `useRegisterMutation`, invalidate `['user','me']` | FE | ✅ Xong (đang lỗi 404 do path lệch) |
-| F4 | `UserController /me`; `GlobalExceptionHandler` | BE | ⬜ Chưa |
+| F2 | JWT thật + `SecurityConfig` chặn 401 | BE | ✅ Xong — JWT HS512, endpoint thiếu token trả 401; còn lỗi scope admin (xem 8.2) |
+| F3 | `useLoginMutation`, `useRegisterMutation`, invalidate `['user','me']` | FE | ✅ Xong (đăng ký/đăng nhập chạy thật) |
+| F4 | `UserController /me`; `GlobalExceptionHandler` | BE | ✅ Xong |
 | F5 | `categories` — entity, migration, CRUD API + FE | FE+BE | ✅ Xong (cây danh mục, admin CRUD, sidebar/dropdown) |
-| F6 | `shops` — entity, migration, đăng ký shop | FE+BE | ✅ Xong (đăng ký, trang public, admin duyệt/khoá) |
-| F7 | `products`+`product_variants`+`product_images` | FE+BE | 🔶 Đang làm — đã có entity/API đọc; thiếu `product_images`, CRUD Seller, upload ảnh (xem PHAN-CONG-CLAUDE.md, gói A+B) |
-| F8 | Trang danh sách + chi tiết sản phẩm | FE | ⬜ Chưa (khung đã có, chờ BE) |
-| F9 | Tìm kiếm + lọc + phân trang | FE+BE | ⬜ Chưa (validateSearch đã có ở FE) |
-| F10 | `cart_items` — optimistic mutation | FE+BE | ⬜ Chưa (hook FE đã có, chờ BE) |
-| F11 | `addresses` | FE+BE | ⬜ Chưa |
-| F12 | `checkout_sessions`+`orders`+`order_items` trong `@Transactional` | BE | 🔶 Đang làm — đã có service/controller/migration V9 + trang FE; thiếu test race-condition/rollback và rà soát (gói C+D) |
-| F13 | VNPay sandbox | BE+FE | ⬜ Chưa |
-| F14 | Momo sandbox | BE+FE | ⬜ Chưa |
+| F6 | `shops` — entity, migration, đăng ký shop | FE+BE | ✅ Xong (đăng ký, trang public, admin duyệt/khoá; API admin đang bị ảnh hưởng bởi lỗi scope JWT) |
+| F7 | `products`+`product_variants`+`product_images` | FE+BE | ✅ Xong — CRUD Seller, variant, upload/xoá ảnh, gallery Buyer; E2E Seller tạo sản phẩm có ảnh |
+| F8 | Trang danh sách + chi tiết sản phẩm | FE | ✅ Xong |
+| F9 | Tìm kiếm + lọc + phân trang | FE+BE | ✅ Xong (validateSearch, debounce, lọc category/giá/sort) |
+| F10 | `cart_items` — optimistic mutation | FE+BE | ✅ Xong (optimistic update + rollback khi lỗi) |
+| F11 | `addresses` | FE+BE | ✅ Xong (CRUD + địa chỉ mặc định) |
+| F12 | `checkout_sessions`+`orders`+`order_items` trong `@Transactional` | BE | ✅ Xong — transaction tách đơn theo shop, trừ kho, 11/11 test pass; E2E checkout 2 shop thành công |
+| F13 | VNPay sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `VNPAY`, chưa tạo URL/callback thật |
+| F14 | Momo sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `MOMO`, chưa tạo URL/callback thật |
 | F15 | Theo dõi & cập nhật trạng thái đơn | FE+BE | ⬜ Chưa |
 | F16 | `reviews` | FE+BE | ⬜ Chưa |
-| F17 | Seller Dashboard | FE+BE | ⬜ Chưa (khung route đã có) |
-| F18 | Admin | FE+BE | ⬜ Chưa (khung route đã có) |
-| F19 | Index DB | BE | ⬜ Chưa |
+| F17 | Seller Dashboard | FE+BE | 🔶 Một phần — có thông tin shop/số sản phẩm; chưa thống kê đơn/doanh thu |
+| F18 | Admin | FE+BE | 🔶 Một phần — có quản lý shop/category; dashboard tổng hợp và xem đơn toàn sàn chưa |
+| F19 | Index DB | BE | ⬜ Chưa (cần rà index cho search/checkout) |
 | F20 | Code splitting/Profiler | FE | ✅ Đã tách bundle seller/admin |
-| F21 | Test checkout nhiều shop + webhook | FE+BE | ⬜ Chưa |
-| F22 | Build production, polish, demo | FE+BE | ⬜ Chưa |
+| F21 | Test checkout nhiều shop + webhook | FE+BE | 🔶 Một phần — integration test checkout nhiều shop 11/11 pass; webhook chờ F13/F14 |
+| F22 | Build production, polish, demo | FE+BE | ⬜ Chưa (đã có seed dữ liệu mẫu) |
 
-**Việc cần làm ngay** (đang chặn tiến độ): sửa lỗi 404 ở `/register` (đối chiếu path FE `api/auth.api.js` với `@RequestMapping` thật trong `AuthenticationController`), sau đó làm F2 (SecurityConfig+JWT) và F4 (`/me`) để hoàn thiện toàn bộ luồng Auth trước khi sang F5.
+**Việc tiếp theo** (theo thứ tự ưu tiên):
+1. Sửa lỗi JWT admin: `AuthenticationService.generateToken` đang hardcode `scope=USER`, khiến mọi tài khoản admin nhận 403 ở API admin. Đây là lỗi có sẵn, cần sửa trước khi hoàn thiện F18.
+2. Làm F13/F14 (VNPay/Momo sandbox) kèm callback/IPN idempotent, rồi bổ sung test webhook cho F21.
+3. Làm F15 (theo dõi đơn) và F16 (review).
+4. Hoàn thiện F17/F18 (dashboard Seller/Admin), F19 (index), F22 (build production + demo).
+
+### 8.1 Kết quả kiểm chứng gần nhất (2026-10-24)
+
+- Đã merge đủ 4 gói vào `dev-huynh`: A `532ee23`, B `617c1e1`, C `a632955`, D `6a848a8`.
+- Backend merged chạy `mvn test`: **11/11 test pass** (gồm integration test checkout tách đơn theo shop).
+- E2E UI thật:
+  - Seller tạo sản phẩm mới, upload ảnh PNG; API sản phẩm trả `images.length=1`, URL ảnh trả HTTP 200.
+  - Buyer thêm 2 sản phẩm từ 2 shop, checkout tổng **548.000 ₫**; tạo checkout session 2 order, tồn kho mỗi variant giảm 10 → 9, giỏ hàng rỗng sau khi đặt.
+  - Trang kết quả đọc dữ liệu từ `GET /api/checkout/{id}` (không đọc số liệu từ URL); kiểm tra ownership trả đúng 404/401 cho session không thuộc buyer.
+- Seed dữ liệu mẫu: `node scripts/seed-demo.mjs` tạo 3 shop, 6 sản phẩm có ảnh, 4 tài khoản demo; chạy lại không tạo bản ghi trùng.
+
+### 8.2 Lỗi tồn đọng ngoài phạm vi 4 gói
+
+- `AuthenticationService.generateToken` hardcode `.claim("scope", "USER")`. Mọi tài khoản admin nhận JWT `scope=USER`, nên `PATCH /api/admin/shops/{id}/status` và các API admin trả **403**. E2E và seed hiện workaround bằng SQL local để duyệt shop; cần sửa JWT để admin dùng được API thật.
+- Chưa tích hợp cổng thanh toán thật (F13/F14), nên trạng thái thanh toán trong checkout result chỉ là `PENDING`/chờ thanh toán.
 
 
 
