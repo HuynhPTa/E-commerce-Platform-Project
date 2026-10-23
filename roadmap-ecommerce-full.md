@@ -355,6 +355,7 @@ Frontend/src/
 | F20 | Code splitting/Profiler | FE | ✅ Đã tách bundle seller/admin |
 | F21 | Test checkout nhiều shop + webhook | FE+BE | 🔶 Một phần — integration test checkout nhiều shop 11/11 pass; webhook chờ F13/F14 |
 | F22 | Build production, polish, demo | FE+BE | ⬜ Chưa (đã có seed dữ liệu mẫu) |
+| F23 | Trang chủ: khối sản phẩm đề xuất (dùng API F9, sort `best_selling`) | FE | ✅ Xong — 8 sản phẩm, có link xem tất cả |
 
 **Việc tiếp theo** (theo thứ tự ưu tiên):
 1. Sửa lỗi JWT admin: `AuthenticationService.generateToken` đang hardcode `scope=USER`, khiến mọi tài khoản admin nhận 403 ở API admin. Đây là lỗi có sẵn, cần sửa trước khi hoàn thiện F18.
@@ -371,6 +372,7 @@ Frontend/src/
   - Buyer thêm 2 sản phẩm từ 2 shop, checkout tổng **548.000 ₫**; tạo checkout session 2 order, tồn kho mỗi variant giảm 10 → 9, giỏ hàng rỗng sau khi đặt.
   - Trang kết quả đọc dữ liệu từ `GET /api/checkout/{id}` (không đọc số liệu từ URL); kiểm tra ownership trả đúng 404/401 cho session không thuộc buyer.
 - Seed dữ liệu mẫu: `node scripts/seed-demo.mjs` tạo 3 shop, 6 sản phẩm có ảnh, 4 tài khoản demo; chạy lại không tạo bản ghi trùng.
+- Trang chủ có khối **Sản phẩm đề xuất** (F23): lấy 8 sản phẩm từ API F9 với `sort=best_selling`, hiển thị bằng `ProductCard`, có trạng thái loading/error/rỗng và link xem tất cả.
 
 ### 8.2 Lỗi tồn đọng ngoài phạm vi 4 gói
 

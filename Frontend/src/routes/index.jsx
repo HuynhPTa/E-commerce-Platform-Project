@@ -1,10 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, LayoutGrid, Store } from "lucide-react";
+import { ArrowRight, LayoutGrid, Sparkles, Store } from "lucide-react";
 import { useCategoryTree } from "../queries/useCategories";
+import { useProductsQuery } from "../queries/useProducts";
 import CategoryIcon from "../components/category/CategoryIcon";
+import ProductCard from "../components/product/ProductCard";
 
 export default function HomePage() {
   const { data: tree = [], isLoading } = useCategoryTree();
+  const {
+    data: recommended,
+    isLoading: isRecommendedLoading,
+    isError: isRecommendedError,
+  } = useProductsQuery({ sort: "best_selling", page: 1, size: 8 });
+  const recommendedItems = recommended?.items ?? [];
 
   return (
     <div>
@@ -33,6 +41,34 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+        )}
+      </section>
+
+      <section className="card home-products">
+        <div className="card-header">
+          <h3 className="row"><Sparkles size={18} color="var(--primary)" /> Sản phẩm đề xuất</h3>
+          <Link to="/products" search={{ sort: "best_selling" }} className="muted">
+            Xem tất cả sản phẩm <ArrowRight size={14} style={{ verticalAlign: "middle" }} />
+          </Link>
+        </div>
+        {isRecommendedLoading && <div className="center-box">Đang tải sản phẩm…</div>}
+        {isRecommendedError && (
+          <div className="card-body">
+            <p role="alert">Không tải được sản phẩm đề xuất.</p>
+          </div>
+        )}
+        {!isRecommendedLoading && !isRecommendedError && (
+          recommendedItems.length > 0 ? (
+            <div className="card-body">
+              <div className="product-grid">
+                {recommendedItems.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="card-body muted">Chưa có sản phẩm để đề xuất.</div>
+          )
         )}
       </section>
     </div>
