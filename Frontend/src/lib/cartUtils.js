@@ -12,7 +12,7 @@ export function groupByShop(items = []) {
     }
     const group = map.get(item.shopId)
     group.items.push(item)
-    group.subtotal += item.price * item.quantity
+    group.subtotal += (item.unitPriceMinor ?? 0) * item.quantity
   }
   return [...map.values()]
 }

@@ -320,6 +320,50 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; }
   .form-row { grid-template-columns: 1fr; }
 }
 
+/* ---------- Checkout (F12) ---------- */
+.checkout-page > h1 { margin-bottom: 16px; }
+.checkout-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(330px, 1fr); gap: 18px; align-items: start; }
+.checkout-groups { display: flex; flex-direction: column; gap: 12px; }
+.checkout-shop, .checkout-form, .checkout-result { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; }
+.checkout-form { position: sticky; top: 84px; }
+.checkout-form h2, .checkout-shop__name { margin: 0 0 10px; }
+.checkout-shop__items { list-style: none; margin: 0; padding: 0; }
+.checkout-item { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+.checkout-item:first-child { border-top: 0; }
+.checkout-item img, .checkout-item__thumb { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; background: #f1f1f4; }
+.checkout-item__info { min-width: 0; }
+.checkout-item__info small { display: block; margin-top: 2px; }
+.checkout-item__price { font-weight: 600; white-space: nowrap; }
+.checkout-shop__subtotal { display: flex; justify-content: flex-end; gap: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+.checkout-payments { display: flex; flex-wrap: wrap; gap: 18px; margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; }
+.checkout-payments legend { padding: 0 4px; font-weight: 600; }
+.checkout-payments label { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; }
+.checkout-payments input { width: auto; }
+.checkout-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0; margin-bottom: 10px; border-top: 1px solid var(--border); }
+.checkout-total strong { font-size: 20px; color: var(--primary); }
+.checkout-form .alert { margin: 10px 0; }
+.checkout-form > .btn-block { margin-top: 6px; }
+
+.checkout-result { max-width: 780px; margin: 0 auto; padding: 24px; }
+.checkout-result__head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.checkout-result__head > svg { color: var(--success); flex-shrink: 0; }
+.checkout-result__head h1 { margin: 0; }
+.checkout-result__head .badge { margin-left: auto; }
+.checkout-result__summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; padding: 14px 16px; background: #fafafb; border: 1px solid var(--border); border-radius: var(--radius); }
+.checkout-result__summary dt { color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+.checkout-result__summary dd { margin: 0; font-weight: 600; }
+.checkout-result__total { color: var(--primary); font-size: 18px; }
+.checkout-result__orders { list-style: none; margin: 0 0 20px; padding: 0; }
+.checkout-result__order { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
+.checkout-result__actions { flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .checkout-layout { grid-template-columns: 1fr; }
+  .checkout-form { position: static; }
+  .checkout-result__summary { grid-template-columns: 1fr; }
+  .checkout-result__order { grid-template-columns: 1fr auto; }
+}
+
 /* ==========================================================================
    Job 3 — Seller quản lý sản phẩm
    ========================================================================== */
