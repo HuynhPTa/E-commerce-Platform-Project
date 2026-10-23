@@ -1,21 +1,15 @@
-// Giả định: api/client.js export default axios instance (đã gắn token qua interceptor)
-// và BE trả ApiResponse { code, message, result }.
-import client from './client'
+// api/ — chỉ export hàm thuần trả Promise, không chứa logic cache.
+import { apiClient } from './client'
 
 export const checkout = (payload) =>
-  client.post('/api/checkout', payload).then((r) => r.data.result)
+  apiClient.post('/checkout', payload).then((r) => r.data.result)
 
-// Dùng cho trang /payment/return (CV6)
+// Màn hình kết quả đọc lại dữ liệu thật từ server, không tin số liệu trên URL.
 export const fetchCheckoutResult = (id) =>
-  client.get(`/api/checkout/${id}`).then((r) => r.data.result)
+  apiClient.get(`/checkout/${id}`).then((r) => r.data.result)
 
-// Của CV1 (A): danh sách địa chỉ đã lưu. Trùng key ['addresses'] nên dùng chung cache.
-export const fetchAddresses = () => client.get('/api/addresses').then((r) => r.data.result)
-
-export const fetchCart = () => client.get('/api/cart').then((r) => r.data.result)
-
-// CV6 sẽ thay phần này. Thống nhất với người làm CV6 về path + body.
+// CV6 (VNPay/MoMo) sẽ gọi hàm này. Hiện BE chưa có endpoint thanh toán nên checkout chưa dùng.
 export const createPaymentUrl = ({ checkoutSessionId, provider }) =>
-  client
-    .post('/api/payments/create-url', { checkoutSessionId, provider })
+  apiClient
+    .post('/payments/create-url', { checkoutSessionId, provider })
     .then((r) => r.data.result) // { redirectUrl }

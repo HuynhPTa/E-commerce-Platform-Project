@@ -1,20 +1,25 @@
-import { useEffect, useMemo } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ShoppingCart, TriangleAlert } from 'lucide-react'
 import ShopGroup from '../components/checkout/ShopGroup'
 import { formatVnd, groupByShop } from '../lib/cartUtils'
+import { errMsg } from '../lib/errors'
 import { checkoutSchema } from '../schemas/checkout.schema'
-import { useAddresses, useCheckout, useCheckoutCart } from '../queries/useCheckout'
+import { useCheckout, useCheckoutCart } from '../queries/useCheckout'
+import { useAddresses } from '../queries/useAddresses'
 
-export const Route = createFileRoute('/checkout')({
-  component: CheckoutPage,
-})
+const STOCK_ERROR_CODES = [1033, 1062, 1063] // hết hàng / món không thuộc giỏ / sản phẩm ngừng bán
 
-function CheckoutPage() {
-  const { data: cart, isPending, isError, refetch } = useCheckoutCart()
-  const { data: addresses = [] } = useAddresses()
+export default function CheckoutPage() {
+  const { data: cart, isPending, isError, error, refetch } = useCheckoutCart()
+  const addressesQuery = useAddresses()
+  const addresses = useMemo(() => addressesQuery.data ?? [], [addressesQuery.data])
   const checkoutMutation = useCheckout()
+
+  const [selectedAddressId, setSelectedAddressId] = useState('')
+  const prefilled = useRef(false)
 
   const {
     register,
@@ -27,44 +32,80 @@ function CheckoutPage() {
     defaultValues: { recipientName: '', phone: '', fullAddress: '', paymentMethod: 'VNPAY' },
   })
 
-  // Derived data: tính trong render, không copy vào state
-  const items = cart?.items ?? []
+  // Derived data: tính trong render/useMemo, không copy vào state
+  const items = useMemo(() => cart ?? [], [cart])
   const groups = useMemo(() => groupByShop(items), [items])
-  const total = groups.reduce((sum, g) => sum + g.subtotal, 0)
-  const hasTempItem = items.some((i) => String(i.id).startsWith('tmp-')) // item optimistic chưa có id thật
+  const total = useMemo(() => groups.reduce((sum, g) => sum + g.subtotal, 0), [groups])
+  // Item optimistic của CV4 chưa có id thật thì BE sẽ từ chối -> khóa nút chờ đồng bộ
+  const hasUnsyncedItem = useMemo(() => items.some((i) => !Number.isInteger(i.id)), [items])
 
-  const fillFromAddress = (addr) => {
-    const opts = { shouldValidate: true }
-    setValue('recipientName', addr.recipientName, opts)
-    setValue('phone', addr.phone, opts)
-    setValue('fullAddress', addr.fullAddress, opts)
-  }
+  const fillFromAddress = useCallback(
+    (addr) => {
+      if (!addr) return
+      const opts = { shouldValidate: true }
+      setValue('recipientName', addr.recipientName ?? '', opts)
+      setValue('phone', addr.phone ?? '', opts)
+      setValue('fullAddress', addr.fullAddress ?? '', opts)
+    },
+    [setValue]
+  )
 
-  // Tự điền địa chỉ mặc định khi tải xong
+  // Tự điền địa chỉ mặc định đúng một lần khi tải xong, không ghi đè nếu người dùng đã sửa
   useEffect(() => {
-    if (addresses.length === 0) return
+    if (prefilled.current || addresses.length === 0) return
     const def = addresses.find((a) => a.defaultAddress) ?? addresses[0]
+    setSelectedAddressId(def.id)
     fillFromAddress(def)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addresses])
+    prefilled.current = true
+  }, [addresses, fillFromAddress])
 
-  const onSubmit = (values) => {
-    checkoutMutation.mutate({ ...values, cartItemIds: items.map((i) => i.id) })
+  function handleAddressChange(e) {
+    const id = Number(e.target.value)
+    setSelectedAddressId(id)
+    fillFromAddress(addresses.find((a) => a.id === id))
   }
 
-  if (isPending) return <div>Đang tải giỏ hàng...</div>
+  function onSubmit(values) {
+    if (checkoutMutation.isPending || hasUnsyncedItem || items.length === 0) return
+    checkoutMutation.mutate({
+      ...values,
+      cartItemIds: items.map((i) => i.id),
+    })
+  }
+
+  if (isPending) return <div className="center-box">Đang tải giỏ hàng…</div>
+
   if (isError) {
     return (
-      <div>
-        Không tải được giỏ hàng. <button onClick={() => refetch()}>Thử lại</button>
+      <div className="card card-body">
+        <div className="alert alert-danger" role="alert">
+          <TriangleAlert size={18} />
+          <div>
+            <strong>Không tải được giỏ hàng</strong>
+            <div>{errMsg(error, 'Vui lòng đăng nhập lại rồi thử lại')}</div>
+          </div>
+        </div>
+        <button className="btn" onClick={() => refetch()}>Thử lại</button>
       </div>
     )
   }
-  if (items.length === 0) return <div>Giỏ hàng trống, chưa có gì để thanh toán.</div>
+
+  if (items.length === 0) {
+    return (
+      <div className="card center-box">
+        <ShoppingCart size={44} />
+        <h1>Giỏ hàng trống</h1>
+        <p>Chưa có sản phẩm nào để thanh toán.</p>
+        <Link to="/products" className="btn btn-primary">Mua sắm ngay</Link>
+      </div>
+    )
+  }
 
   const serverError = checkoutMutation.isError
-    ? checkoutMutation.error?.response?.data?.message ?? 'Không thể đặt hàng, vui lòng thử lại'
+    ? errMsg(checkoutMutation.error, 'Không thể đặt hàng, vui lòng thử lại')
     : null
+  const serverErrorCode = checkoutMutation.error?.response?.data?.code
+  const isStockError = STOCK_ERROR_CODES.includes(serverErrorCode)
 
   return (
     <div className="checkout-page">
@@ -74,48 +115,64 @@ function CheckoutPage() {
         {/* Sản phẩm gom theo shop */}
         <div className="checkout-groups">
           {groups.map((g) => (
-            <ShopGroup key={g.shopId} {...g} />
+            <ShopGroup key={g.shopId} shopName={g.shopName} items={g.items} subtotal={g.subtotal} />
           ))}
         </div>
 
         <form className="checkout-form" onSubmit={handleSubmit(onSubmit)} noValidate>
           <h2>Địa chỉ nhận hàng</h2>
 
+          {addressesQuery.isLoading && <p className="muted">Đang tải địa chỉ đã lưu…</p>}
+
+          {addressesQuery.isError && (
+            <div className="alert alert-warning">
+              <TriangleAlert size={18} />
+              <div>
+                Không tải được địa chỉ đã lưu. Bạn vẫn có thể nhập tay bên dưới hoặc{' '}
+                <Link to="/addresses">quản lý địa chỉ</Link>.
+              </div>
+            </div>
+          )}
+
           {addresses.length > 0 && (
-            <label>
-              Chọn địa chỉ đã lưu
-              <select
-                defaultValue={(addresses.find((a) => a.defaultAddress) ?? addresses[0]).id}
-                onChange={(e) => fillFromAddress(addresses.find((a) => a.id === Number(e.target.value)))}
-              >
+            <div className="field">
+              <label htmlFor="saved-address">Chọn địa chỉ đã lưu</label>
+              <select id="saved-address" value={selectedAddressId} onChange={handleAddressChange}>
                 {addresses.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.recipientName} - {a.fullAddress}
+                    {a.defaultAddress ? '[Mặc định] ' : ''}
+                    {a.recipientName} — {a.fullAddress}
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
           )}
 
-          <label>
-            Người nhận
-            <input {...register('recipientName')} />
-            {errors.recipientName && <span role="alert">{errors.recipientName.message}</span>}
-          </label>
+          {!addressesQuery.isLoading && addresses.length === 0 && (
+            <p className="muted">
+              Bạn chưa có địa chỉ đã lưu. <Link to="/addresses">Thêm địa chỉ</Link> hoặc nhập trực tiếp bên dưới.
+            </p>
+          )}
 
-          <label>
-            Số điện thoại
-            <input {...register('phone')} inputMode="numeric" />
-            {errors.phone && <span role="alert">{errors.phone.message}</span>}
-          </label>
+          <div className={`field${errors.recipientName ? ' has-error' : ''}`}>
+            <label className="required" htmlFor="recipientName">Người nhận</label>
+            <input id="recipientName" autoComplete="name" {...register('recipientName')} />
+            {errors.recipientName && <p className="error" role="alert">{errors.recipientName.message}</p>}
+          </div>
 
-          <label>
-            Địa chỉ
-            <textarea rows={3} {...register('fullAddress')} />
-            {errors.fullAddress && <span role="alert">{errors.fullAddress.message}</span>}
-          </label>
+          <div className={`field${errors.phone ? ' has-error' : ''}`}>
+            <label className="required" htmlFor="phone">Số điện thoại</label>
+            <input id="phone" inputMode="numeric" autoComplete="tel" {...register('phone')} />
+            {errors.phone && <p className="error" role="alert">{errors.phone.message}</p>}
+          </div>
 
-          <fieldset>
+          <div className={`field${errors.fullAddress ? ' has-error' : ''}`}>
+            <label className="required" htmlFor="fullAddress">Địa chỉ</label>
+            <textarea id="fullAddress" rows={3} autoComplete="street-address" {...register('fullAddress')} />
+            {errors.fullAddress && <p className="error" role="alert">{errors.fullAddress.message}</p>}
+          </div>
+
+          <fieldset className="checkout-payments">
             <legend>Cổng thanh toán</legend>
             <label>
               <input type="radio" value="VNPAY" {...register('paymentMethod')} /> VNPay
@@ -127,14 +184,43 @@ function CheckoutPage() {
           </fieldset>
 
           <div className="checkout-total">
-            Tổng thanh toán ({groups.length} đơn): <strong>{formatVnd(total)}</strong>
+            <span>Tổng thanh toán ({groups.length} shop)</span>
+            <strong>{formatVnd(total)}</strong>
           </div>
 
-          {serverError && <div role="alert">{serverError}</div>}
+          {hasUnsyncedItem && (
+            <div className="alert alert-warning">
+              <TriangleAlert size={18} />
+              <div>Giỏ hàng đang được cập nhật, vui lòng chờ trong giây lát rồi đặt hàng.</div>
+            </div>
+          )}
 
-          {/* disabled khi đang gửi: chặn bấm đúp */}
-          <button type="submit" disabled={!isValid || checkoutMutation.isPending || hasTempItem}>
-            {checkoutMutation.isPending ? 'Đang xử lý...' : 'Đặt hàng'}
+          {serverError && (
+            <div className="alert alert-danger" role="alert">
+              <TriangleAlert size={18} />
+              <div>
+                <strong>Không thể đặt hàng</strong>
+                <div>{serverError}</div>
+                {isStockError && (
+                  <div className="muted">
+                    Vui lòng kiểm tra lại số lượng trong <Link to="/cart">giỏ hàng</Link>.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <p className="muted">
+            Đơn được ghi nhận ngay sau khi đặt. Bước thanh toán VNPay/MoMo sẽ được bổ sung ở giai đoạn tiếp theo.
+          </p>
+
+          {/* disabled khi đang gửi: chặn bấm đúp; khóa luôn khi còn item optimistic */}
+          <button
+            type="submit"
+            className="btn btn-primary btn-block"
+            disabled={!isValid || checkoutMutation.isPending || hasUnsyncedItem}
+          >
+            {checkoutMutation.isPending ? 'Đang xử lý…' : 'Đặt hàng'}
           </button>
         </form>
       </div>

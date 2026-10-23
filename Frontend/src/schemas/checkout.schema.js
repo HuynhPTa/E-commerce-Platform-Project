@@ -17,3 +17,8 @@ export const checkoutSchema = z.object({
     .max(500, 'Địa chỉ tối đa 500 ký tự'),
   paymentMethod: z.enum(PAYMENT_METHODS, { message: 'Vui lòng chọn cổng thanh toán' }),
 })
+
+// Chỉ dùng để parse search param; dữ liệu hiển thị vẫn phải đọc lại từ API.
+export const checkoutResultSearchSchema = z.object({
+  checkoutId: z.coerce.number().int().positive().optional().catch(undefined),
+})
