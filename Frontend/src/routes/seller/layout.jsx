@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { LayoutDashboard, Store, Package, ClipboardList, Settings, LoaderCircle } from "lucide-react";
 import PanelLayout from "../../components/layout/PanelLayout";
 import { useMyShop } from "../../queries/useShops";
@@ -7,6 +7,7 @@ import ShopStatusBadge from "../../components/shop/ShopStatusBadge";
 // Chỉ shop đã được Admin duyệt mới vào được Kênh người bán
 export default function SellerLayout() {
   const { data: shop, isLoading } = useMyShop();
+  const pathname = useLocation({ select: (location) => location.pathname });
 
   if (isLoading) return <div className="center-box"><LoaderCircle className="spin" /> Đang tải shop…</div>;
 
@@ -26,10 +27,20 @@ export default function SellerLayout() {
     { section: "Quản lý shop" },
     { to: "/seller", label: "Tổng quan", icon: LayoutDashboard, exact: true },
     { to: "/shops/$shopId", params: { shopId: String(shop.id) }, label: "Trang shop của tôi", icon: Store },
-    { label: "Sản phẩm", icon: Package, soon: true },
+    { to: "/seller/products", label: "Sản phẩm", icon: Package },
     { label: "Đơn hàng", icon: ClipboardList, soon: true },
     { label: "Cài đặt shop", icon: Settings, soon: true },
   ];
 
-  return <PanelLayout brand={shop.name} subtitle="Kênh người bán" nav={nav} title={`Tổng quan — ${shop.name}`} />;
+  const title = pathname === "/seller"
+    ? `Tổng quan — ${shop.name}`
+    : pathname === "/seller/products"
+      ? "Quản lý sản phẩm"
+      : pathname === "/seller/products/new"
+        ? "Thêm sản phẩm"
+        : pathname.startsWith("/seller/products/")
+          ? "Chi tiết sản phẩm"
+          : "Kênh người bán";
+
+  return <PanelLayout brand={shop.name} subtitle="Kênh người bán" nav={nav} title={title} />;
 }
