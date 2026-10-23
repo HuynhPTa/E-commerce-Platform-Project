@@ -60,6 +60,19 @@ public enum ErrorCode {
     SHOP_EXISTED(1051, "Bạn đã đăng ký shop rồi", HttpStatus.CONFLICT),
     SHOP_NAME_EXISTED(1052, "Tên shop đã được sử dụng", HttpStatus.CONFLICT),
 
+    // --- Seller Product Module (Gói A - Công việc 3, dải 1100-1149) ---
+    PRODUCT_NOT_EXISTED(1100, "Sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_OWNED(1101, "Bạn không có quyền quản lý sản phẩm này", HttpStatus.FORBIDDEN),
+    VARIANT_NOT_EXISTED(1102, "Biến thể sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    LAST_VARIANT_DELETE_NOT_ALLOWED(1103, "Không thể xoá biến thể cuối cùng của sản phẩm", HttpStatus.BAD_REQUEST),
+    VARIANT_SKU_EXISTED(1104, "SKU biến thể đã tồn tại", HttpStatus.CONFLICT),
+    VARIANT_IN_USE(1105, "Biến thể đã có trong đơn hàng, không thể xoá", HttpStatus.CONFLICT),
+    PRODUCT_IMAGE_NOT_EXISTED(1106, "Ảnh sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    PRODUCT_IMAGE_LIMIT_EXCEEDED(1107, "Mỗi sản phẩm chỉ được tối đa 10 ảnh", HttpStatus.BAD_REQUEST),
+    PRODUCT_IMAGE_INVALID_TYPE(1108, "Chỉ chấp nhận file ảnh JPEG, PNG, WEBP hoặc GIF", HttpStatus.BAD_REQUEST),
+    PRODUCT_IMAGE_TOO_LARGE(1109, "Ảnh vượt quá dung lượng cho phép (5 MB)", HttpStatus.BAD_REQUEST),
+    PRODUCT_IMAGE_UPLOAD_FAILED(1110, "Lưu ảnh thất bại, vui lòng thử lại", HttpStatus.INTERNAL_SERVER_ERROR),
+
     UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

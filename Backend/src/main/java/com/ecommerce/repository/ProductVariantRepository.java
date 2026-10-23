@@ -7,10 +7,21 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from ProductVariant v join fetch v.product where v.id = :id")
     Optional<ProductVariant> findByIdForUpdate(@Param("id") Integer id);
+
+    List<ProductVariant> findAllByProductIdOrderByIdAsc(Integer productId);
+
+    long countByProductId(Integer productId);
+
+    Optional<ProductVariant> findByIdAndProductId(Integer id, Integer productId);
+
+    boolean existsBySkuIgnoreCase(String sku);
+
+    boolean existsBySkuIgnoreCaseAndIdNot(String sku, Integer id);
 }
