@@ -48,6 +48,10 @@ public enum ErrorCode {
     INVALID_CART_ITEM(1062, "Có sản phẩm không thuộc giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_AVAILABLE(1063, "Sản phẩm hiện không còn bán", HttpStatus.BAD_REQUEST),
 
+    // --- Checkout hardening (gói C, dải 1150-1199) ---
+    SHOP_NOT_AVAILABLE(1150, "Shop hiện không hoạt động hoặc chưa được duyệt", HttpStatus.BAD_REQUEST),
+    CHECKOUT_TOTAL_TOO_LARGE(1151, "Tổng giá trị đơn hàng vượt quá giới hạn cho phép", HttpStatus.BAD_REQUEST),
+
     // --- Category Module (Công việc của Hoàng) ---
     CATEGORY_NOT_EXISTED(1040, "Danh mục không tồn tại", HttpStatus.NOT_FOUND),
     CATEGORY_SLUG_EXISTED(1041, "Slug danh mục đã tồn tại", HttpStatus.CONFLICT),

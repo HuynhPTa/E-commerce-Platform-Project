@@ -9,6 +9,7 @@ import com.ecommerce.repository.CheckoutCartRepository;
 import com.ecommerce.repository.CheckoutCartRepository.CartLine;
 import com.ecommerce.repository.CheckoutSessionRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.ShopRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -26,6 +27,7 @@ public class CheckoutService {
     private final CheckoutCartRepository cartRepository;
     private final CheckoutSessionRepository sessionRepository;
     private final OrderRepository orderRepository;
+    private final ShopRepository shopRepository;
     private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
 
@@ -39,8 +41,27 @@ public class CheckoutService {
         // 1. Đọc giỏ hàng + giá + shop từ DB (không tin client)
         List<CartLine> lines = cartRepository.findLines(buyerId, request.getCartItemIds());
         validateLines(lines, request.getCartItemIds());
+        validateShops(lines);
 
-        // 2. Trừ kho nguyên tử. Sắp xếp theo variantId để các giao dịch đồng thời
+        // 2. Nhóm theo shop + tính tiền TRƯỚC khi ghi DB.
+        //    Tiền lưu bằng int (đồng) nên phải chặn tràn số thay vì để ArithmeticException -> 500.
+        Map<Integer, List<CartLine>> byShop = lines.stream()
+                .collect(Collectors.groupingBy(CartLine::shopId, LinkedHashMap::new, Collectors.toList()));
+
+        Map<Integer, Integer> subtotals = new LinkedHashMap<>();
+        long total = 0;
+        for (Map.Entry<Integer, List<CartLine>> entry : byShop.entrySet()) {
+            long subtotal = 0;
+            for (CartLine line : entry.getValue()) {
+                subtotal = addAmount(subtotal, lineTotal(line));
+            }
+            int subtotalMinor = toAmountMinor(subtotal);
+            subtotals.put(entry.getKey(), subtotalMinor);
+            total = addAmount(total, subtotalMinor);
+        }
+        int totalMinor = toAmountMinor(total);
+
+        // 3. Trừ kho nguyên tử. Sắp xếp theo variantId để các giao dịch đồng thời
         //    khóa dòng theo cùng thứ tự -> tránh deadlock.
         lines.stream()
                 .sorted(Comparator.comparingInt(CartLine::variantId))
@@ -50,21 +71,16 @@ public class CheckoutService {
                     }
                 });
 
-        // 3. Tạo checkout_session (điểm neo cho 1 lượt thanh toán)
+        // 4. Tạo checkout_session (điểm neo cho 1 lượt thanh toán)
         User buyer = entityManager.getReference(User.class, buyerId);
-        long total = lines.stream().mapToLong(l -> (long) l.unitPriceMinor() * l.quantity()).sum();
-
         CheckoutSession session = new CheckoutSession();
         session.setBuyer(buyer);
         session.setStatus(CheckoutStatus.PENDING);
         session.setPaymentMethod(request.getPaymentMethod());
-        session.setTotalAmountMinor(Math.toIntExact(total));
+        session.setTotalAmountMinor(totalMinor);
         sessionRepository.save(session);
 
-        // 4. Nhóm theo shop_id -> mỗi shop 1 order
-        Map<Integer, List<CartLine>> byShop = lines.stream()
-                .collect(Collectors.groupingBy(CartLine::shopId, LinkedHashMap::new, Collectors.toList()));
-
+        // 5. Mỗi shop 1 order
         List<Order> orders = new ArrayList<>();
         for (Map.Entry<Integer, List<CartLine>> entry : byShop.entrySet()) {
             Order order = new Order();
@@ -74,19 +90,17 @@ public class CheckoutService {
             order.setStatus(OrderStatus.PENDING);
             order.setShippingAddressSnapshot(buildAddressSnapshot(request));
 
-            int subtotal = 0;
             for (CartLine line : entry.getValue()) {
-                int lineTotal = Math.multiplyExact(line.unitPriceMinor(), line.quantity());
                 OrderItem item = new OrderItem();
                 item.setVariantId(line.variantId());
                 item.setProductNameSnapshot(line.productName());
                 item.setVariantAttributesSnapshot(parseAttributes(line.attributesJson()));
-                item.setUnitPriceMinor(line.unitPriceMinor());
+                item.setUnitPriceMinor(toAmountMinor(line.unitPriceMinor()));
                 item.setQuantity(line.quantity());
-                item.setSubtotalMinor(lineTotal);
+                item.setSubtotalMinor(toAmountMinor(lineTotal(line)));
                 order.addItem(item);
-                subtotal = Math.addExact(subtotal, lineTotal);
             }
+            int subtotal = subtotals.get(entry.getKey());
             order.setSubtotalMinor(subtotal);
             order.setShippingFeeMinor(0);
             order.setTotalMinor(subtotal);
@@ -94,7 +108,7 @@ public class CheckoutService {
             orders.add(order);
         }
 
-        // 5. Xóa các món đã đặt khỏi giỏ
+        // 6. Xóa các món đã đặt khỏi giỏ
         cartRepository.deleteCartItems(buyerId,
                 lines.stream().map(CartLine::cartItemId).toList());
 
@@ -117,19 +131,58 @@ public class CheckoutService {
     // ---------------------------------------------------------------- helpers
 
     private void validateLines(List<CartLine> lines, List<Integer> requestedIds) {
-        if (lines.isEmpty()) {
-            throw new AppException(ErrorCode.CART_EMPTY);
-        }
+        // cartItemIds lạ (của người khác / đã bị xóa) phải báo INVALID_CART_ITEM,
+        // kể cả khi giỏ lọc ra rỗng — kiểm tra trước CART_EMPTY.
         if (requestedIds != null && !requestedIds.isEmpty()
                 && lines.size() != new HashSet<>(requestedIds).size()) {
             throw new AppException(ErrorCode.INVALID_CART_ITEM);
         }
-        lines.stream()
-                .filter(l -> !"ACTIVE".equals(l.productStatus()))
-                .findFirst()
-                .ifPresent(l -> {
-                    throw new AppException(ErrorCode.PRODUCT_NOT_AVAILABLE);
-                });
+        if (lines.isEmpty()) {
+            throw new AppException(ErrorCode.CART_EMPTY);
+        }
+        for (CartLine line : lines) {
+            // Dữ liệu giỏ hỏng (quantity/price <= 0) không được tạo đơn 0 đồng.
+            if (line.quantity() < 1 || line.unitPriceMinor() <= 0) {
+                throw new AppException(ErrorCode.INVALID_CART_ITEM);
+            }
+            if (!"ACTIVE".equalsIgnoreCase(line.productStatus())) {
+                throw new AppException(ErrorCode.PRODUCT_NOT_AVAILABLE);
+            }
+        }
+    }
+
+    /** Shop phải tồn tại và đã được Admin duyệt thì sản phẩm mới được bán. */
+    private void validateShops(List<CartLine> lines) {
+        Set<Integer> shopIds = lines.stream().map(CartLine::shopId).collect(Collectors.toSet());
+        List<Shop> shops = shopRepository.findAllById(shopIds);
+        boolean allApproved = shops.size() == shopIds.size()
+                && shops.stream().allMatch(shop -> shop.getStatus() == ShopStatus.APPROVED);
+        if (!allApproved) {
+            throw new AppException(ErrorCode.SHOP_NOT_AVAILABLE);
+        }
+    }
+
+    private long lineTotal(CartLine line) {
+        try {
+            return Math.multiplyExact(line.unitPriceMinor(), (long) line.quantity());
+        } catch (ArithmeticException ex) {
+            throw new AppException(ErrorCode.CHECKOUT_TOTAL_TOO_LARGE);
+        }
+    }
+
+    private long addAmount(long a, long b) {
+        try {
+            return Math.addExact(a, b);
+        } catch (ArithmeticException ex) {
+            throw new AppException(ErrorCode.CHECKOUT_TOTAL_TOO_LARGE);
+        }
+    }
+
+    private int toAmountMinor(long amount) {
+        if (amount < 0 || amount > Integer.MAX_VALUE) {
+            throw new AppException(ErrorCode.CHECKOUT_TOTAL_TOO_LARGE);
+        }
+        return (int) amount;
     }
 
     private Map<String, Object> buildAddressSnapshot(CheckoutRequest request) {
