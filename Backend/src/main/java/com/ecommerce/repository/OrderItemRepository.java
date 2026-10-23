@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
@@ -56,4 +57,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
     long countCompletedItems(@Param("userId") int userId,
                              @Param("productId") int productId,
                              @Param("status") OrderStatus status);
+
+    /** Đếm số dòng hàng của nhiều đơn trong 1 query (tránh N+1 khi hiển thị danh sách). */
+    @Query("""
+            select oi.order.id, count(oi) from OrderItem oi
+            where oi.order.id in :orderIds
+            group by oi.order.id
+            """)
+    List<Object[]> countByOrderIds(@Param("orderIds") Collection<Integer> orderIds);
 }

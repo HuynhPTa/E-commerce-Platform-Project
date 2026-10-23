@@ -52,6 +52,11 @@ public enum ErrorCode {
     SHOP_NOT_AVAILABLE(1150, "Shop hiện không hoạt động hoặc chưa được duyệt", HttpStatus.BAD_REQUEST),
     CHECKOUT_TOTAL_TOO_LARGE(1151, "Tổng giá trị đơn hàng vượt quá giới hạn cho phép", HttpStatus.BAD_REQUEST),
 
+    // --- Admin & Seller orders/users (dải 1170-1189) ---
+    ORDER_NOT_EXISTED(1170, "Đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
+    CANNOT_MODIFY_SELF(1171, "Bạn không thể thay đổi trạng thái tài khoản của chính mình", HttpStatus.BAD_REQUEST),
+    CANNOT_LOCK_ADMIN(1172, "Không thể khoá tài khoản quản trị viên", HttpStatus.BAD_REQUEST),
+
     // --- Review Module (Công việc 8, dải 1160-1169) ---
     REVIEW_ORDER_ITEM_NOT_FOUND(1160, "Không tìm thấy món hàng cần đánh giá", HttpStatus.NOT_FOUND),
     REVIEW_NOT_ALLOWED(1161, "Bạn không có quyền đánh giá món hàng này", HttpStatus.FORBIDDEN),

@@ -32,6 +32,13 @@ const registerRoute = createRoute({
   component: lazy(() => import("../routes/register.jsx")),
 });
 
+// Backend chuyển về sau khi Google/Facebook xác thực: /oauth2/redirect?token=...
+const oauth2RedirectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/oauth2/redirect",
+  component: lazy(() => import("../routes/oauth2-redirect.jsx")),
+});
+
 const productsIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/products",
@@ -121,6 +128,18 @@ const sellerProductDetailRoute = createRoute({
   component: lazy(() => import("../routes/seller/products/$productId.jsx")),
 });
 
+const sellerOrdersRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/orders",
+  component: lazy(() => import("../routes/seller/orders.jsx")),
+});
+
+const sellerSettingsRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/settings",
+  component: lazy(() => import("../routes/seller/settings.jsx")),
+});
+
 // Admin: layout (sidebar + kiểm tra role) bọc các trang con qua <Outlet/>
 const adminLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -147,6 +166,18 @@ const adminShopsRoute = createRoute({
   component: lazy(() => import("../routes/admin/shops.jsx")),
 });
 
+const adminOrdersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/orders",
+  component: lazy(() => import("../routes/admin/orders.jsx")),
+});
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/users",
+  component: lazy(() => import("../routes/admin/users.jsx")),
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profile",
@@ -165,6 +196,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  oauth2RedirectRoute,
   productsIndexRoute,
   productDetailRoute,
   cartRoute,
@@ -177,8 +209,16 @@ const routeTree = rootRoute.addChildren([
     sellerProductsRoute,
     sellerProductNewRoute,
     sellerProductDetailRoute,
+    sellerOrdersRoute,
+    sellerSettingsRoute,
   ]),
-  adminLayoutRoute.addChildren([adminIndexRoute, adminCategoriesRoute, adminShopsRoute]),
+  adminLayoutRoute.addChildren([
+    adminIndexRoute,
+    adminCategoriesRoute,
+    adminShopsRoute,
+    adminOrdersRoute,
+    adminUsersRoute,
+  ]),
   profileRoute,
   addressesRoute,
 ]);

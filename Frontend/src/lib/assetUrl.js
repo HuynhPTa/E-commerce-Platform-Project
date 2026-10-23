@@ -1,7 +1,7 @@
 // Ảnh upload được lưu trong DB dưới dạng đường dẫn tương đối (/uploads/...).
 // Trình duyệt sẽ tải nhầm từ origin của frontend (Vite) nếu không trỏ về backend.
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
-const API_ORIGIN = (() => {
+export const API_ORIGIN = (() => {
   try {
     return new URL(API_BASE).origin;
   } catch {

@@ -28,8 +28,8 @@ export default function SellerLayout() {
     { to: "/seller", label: "Tổng quan", icon: LayoutDashboard, exact: true },
     { to: "/shops/$shopId", params: { shopId: String(shop.id) }, label: "Trang shop của tôi", icon: Store },
     { to: "/seller/products", label: "Sản phẩm", icon: Package },
-    { label: "Đơn hàng", icon: ClipboardList, soon: true },
-    { label: "Cài đặt shop", icon: Settings, soon: true },
+    { to: "/seller/orders", label: "Đơn hàng", icon: ClipboardList },
+    { to: "/seller/settings", label: "Cài đặt shop", icon: Settings },
   ];
 
   const title = pathname === "/seller"
@@ -40,7 +40,11 @@ export default function SellerLayout() {
         ? "Thêm sản phẩm"
         : pathname.startsWith("/seller/products/")
           ? "Chi tiết sản phẩm"
-          : "Kênh người bán";
+          : pathname === "/seller/orders"
+            ? "Quản lý đơn hàng"
+            : pathname === "/seller/settings"
+              ? "Cài đặt shop"
+              : "Kênh người bán";
 
   return <PanelLayout brand={shop.name} subtitle="Kênh người bán" nav={nav} title={title} />;
 }

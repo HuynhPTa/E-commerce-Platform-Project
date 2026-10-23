@@ -9,11 +9,17 @@ const NAV = [
   { to: "/admin/categories", label: "Danh mục", icon: FolderTree },
   { to: "/admin/shops", label: "Duyệt shop", icon: Store },
   { section: "Khác" },
-  { label: "Đơn hàng toàn sàn", icon: ClipboardList, soon: true },
-  { label: "Người dùng", icon: Users, soon: true },
+  { to: "/admin/orders", label: "Đơn hàng toàn sàn", icon: ClipboardList },
+  { to: "/admin/users", label: "Người dùng", icon: Users },
 ];
 
-const TITLES = { "/admin": "Tổng quan", "/admin/categories": "Quản lý danh mục", "/admin/shops": "Phê duyệt shop" };
+const TITLES = {
+  "/admin": "Tổng quan",
+  "/admin/categories": "Quản lý danh mục",
+  "/admin/shops": "Phê duyệt shop",
+  "/admin/orders": "Đơn hàng toàn sàn",
+  "/admin/users": "Quản lý người dùng",
+};
 
 // Lớp bảo vệ ở FE chỉ để trải nghiệm tốt hơn; quyền thật do @PreAuthorize ở Backend kiểm tra
 export default function AdminLayout() {

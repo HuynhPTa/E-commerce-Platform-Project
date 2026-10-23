@@ -30,6 +30,15 @@ public class ShopController {
         return ApiResponse.<ShopResponse>builder().code(1000).result(shopService.myShop(jwt.getSubject())).build();
     }
 
+    // Cài đặt shop: chỉ sửa thông tin, không đổi trạng thái duyệt
+    @PutMapping("/me")
+    public ApiResponse<ShopResponse> updateMyShop(@AuthenticationPrincipal Jwt jwt,
+                                                  @Valid @RequestBody ShopRequest req) {
+        return ApiResponse.<ShopResponse>builder().code(1000)
+                .message("Đã cập nhật thông tin shop")
+                .result(shopService.updateMyShop(jwt.getSubject(), req)).build();
+    }
+
     // Công khai (permitAll trong SecurityConfig); jwt có thể null khi khách chưa đăng nhập
     @GetMapping("/{id:\\d+}")
     public ApiResponse<ShopResponse> getById(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt) {

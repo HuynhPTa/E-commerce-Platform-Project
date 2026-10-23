@@ -5,6 +5,7 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,4 +26,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") Integer id);
+
+    // Đổi tên shop trong cài đặt: đồng bộ bản sao shopName đã lưu trên sản phẩm
+    @Modifying
+    @Query("update Product p set p.shopName = :name where p.shopId = :shopId")
+    int updateShopNameByShopId(@Param("shopId") String shopId, @Param("name") String name);
 }
