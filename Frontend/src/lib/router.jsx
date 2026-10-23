@@ -3,6 +3,7 @@ import { lazy } from "react";
 import RootLayout from "../routes/__root.jsx";
 import { productSearchSchema } from "../schemas/product-search.schema";
 import { shopProductsSearchSchema } from "../schemas/shop.schema";
+import { checkoutResultSearchSchema } from "../schemas/checkout.schema";
 import { redirect } from "@tanstack/react-router";
 import { hasToken } from "../queries/useMe";
 // Tầng 1B — TanStack Router: tổ chức route + route params có validate.
@@ -55,7 +56,18 @@ const cartRoute = createRoute({
 const checkoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/checkout",
+  beforeLoad: requireAuth,
   component: lazy(() => import("../routes/checkout.jsx")),
+});
+
+// Màn hình kết quả: chỉ dùng checkoutId để gọi GET /api/checkout/{id},
+// mọi số liệu hiển thị lấy từ response chứ không đọc từ URL.
+const checkoutResultRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/checkout/result",
+  validateSearch: checkoutResultSearchSchema,
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/checkout-result.jsx")),
 });
 
 // Trang công khai của shop: /shops/12?sort=best_selling&page=2
@@ -138,6 +150,7 @@ const routeTree = rootRoute.addChildren([
   productDetailRoute,
   cartRoute,
   checkoutRoute,
+  checkoutResultRoute,
   shopRoute,
   sellerRegisterRoute,
   sellerLayoutRoute.addChildren([sellerIndexRoute]),
