@@ -52,6 +52,12 @@ public enum ErrorCode {
     SHOP_NOT_AVAILABLE(1150, "Shop hiện không hoạt động hoặc chưa được duyệt", HttpStatus.BAD_REQUEST),
     CHECKOUT_TOTAL_TOO_LARGE(1151, "Tổng giá trị đơn hàng vượt quá giới hạn cho phép", HttpStatus.BAD_REQUEST),
 
+    // --- Review Module (Công việc 8, dải 1160-1169) ---
+    REVIEW_ORDER_ITEM_NOT_FOUND(1160, "Không tìm thấy món hàng cần đánh giá", HttpStatus.NOT_FOUND),
+    REVIEW_NOT_ALLOWED(1161, "Bạn không có quyền đánh giá món hàng này", HttpStatus.FORBIDDEN),
+    REVIEW_ORDER_NOT_COMPLETED(1162, "Chỉ có thể đánh giá khi đơn hàng đã hoàn tất", HttpStatus.BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS(1163, "Sản phẩm này đã được đánh giá trong đơn hàng", HttpStatus.CONFLICT),
+
     // --- Category Module (Công việc của Hoàng) ---
     CATEGORY_NOT_EXISTED(1040, "Danh mục không tồn tại", HttpStatus.NOT_FOUND),
     CATEGORY_SLUG_EXISTED(1041, "Slug danh mục đã tồn tại", HttpStatus.CONFLICT),

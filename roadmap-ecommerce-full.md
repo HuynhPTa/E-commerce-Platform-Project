@@ -348,10 +348,10 @@ Frontend/src/
 | F13 | VNPay sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `VNPAY`, chưa tạo URL/callback thật |
 | F14 | Momo sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `MOMO`, chưa tạo URL/callback thật |
 | F15 | Theo dõi & cập nhật trạng thái đơn | FE+BE | ⬜ Chưa |
-| F16 | `reviews` | FE+BE | ⬜ Chưa |
+| F16 | `reviews` | FE+BE | ✅ Xong — POST /api/reviews + eligibility + danh sách; rating_avg/count tự tính; UI chọn sao/form/phân trang; 9 test review |
 | F17 | Seller Dashboard | FE+BE | 🔶 Một phần — có thông tin shop/số sản phẩm; chưa thống kê đơn/doanh thu |
 | F18 | Admin | FE+BE | 🔶 Một phần — có quản lý shop/category; dashboard tổng hợp và xem đơn toàn sàn chưa |
-| F19 | Index DB | BE | ⬜ Chưa (cần rà index cho search/checkout) |
+| F19 | Index DB | BE | ✅ Xong — FULLTEXT `products.name`, B-tree shop/category/status-created, trigger `sold_count`; migration V11–V14 |
 | F20 | Code splitting/Profiler | FE | ✅ Đã tách bundle seller/admin |
 | F21 | Test checkout nhiều shop + webhook | FE+BE | 🔶 Một phần — integration test checkout nhiều shop 11/11 pass; webhook chờ F13/F14 |
 | F22 | Build production, polish, demo | FE+BE | ⬜ Chưa (đã có seed dữ liệu mẫu) |
@@ -360,8 +360,7 @@ Frontend/src/
 **Việc tiếp theo** (theo thứ tự ưu tiên):
 1. Sửa lỗi JWT admin: `AuthenticationService.generateToken` đang hardcode `scope=USER`, khiến mọi tài khoản admin nhận 403 ở API admin. Đây là lỗi có sẵn, cần sửa trước khi hoàn thiện F18.
 2. Làm F13/F14 (VNPay/Momo sandbox) kèm callback/IPN idempotent, rồi bổ sung test webhook cho F21.
-3. Làm F15 (theo dõi đơn) và F16 (review).
-4. Hoàn thiện F17/F18 (dashboard Seller/Admin), F19 (index), F22 (build production + demo).
+3. Làm F15 (theo dõi đơn), hoàn thiện F17/F18 (dashboard Seller/Admin), F22 (build production + demo).
 
 ### 8.1 Kết quả kiểm chứng gần nhất (2026-10-24)
 
@@ -373,6 +372,11 @@ Frontend/src/
   - Trang kết quả đọc dữ liệu từ `GET /api/checkout/{id}` (không đọc số liệu từ URL); kiểm tra ownership trả đúng 404/401 cho session không thuộc buyer.
 - Seed dữ liệu mẫu: `node scripts/seed-demo.mjs` tạo 3 shop, 6 sản phẩm có ảnh, 4 tài khoản demo; chạy lại không tạo bản ghi trùng.
 - Trang chủ có khối **Sản phẩm đề xuất** (F23): lấy 8 sản phẩm từ API F9 với `sort=best_selling`, hiển thị bằng `ProductCard`, có trạng thái loading/error/rỗng và link xem tất cả.
+- Công việc 8 — Review (F16/F19):
+  - `mvn clean test`: **20/20 pass** (11 checkout + 9 review), gồm các case đơn chưa COMPLETED, món của người khác, trùng `order_item`, trùng sản phẩm trong cùng đơn và phân trang.
+  - Migration V11–V14 áp lên `ecommerce_db`: bảng `reviews` có 2 unique key, FULLTEXT `ft_products_name`, 3 B-tree (`shop_id`, `category_id`, `status, created_at`), 2 trigger `sold_count`; đã backfill `sold_count` từ đơn COMPLETED.
+  - E2E API: buyer demo mua sản phẩm 5, chuyển đơn sang `COMPLETED` → `sold_count` 0 → 1; gửi review 5 sao → `rating_avg=5.0`, `rating_count=1`; gửi lại trả **409 / 1163**; chuyển đơn rời COMPLETED rồi trở lại → `sold_count` trừ/cộng đúng.
+  - E2E UI (Chrome headless): form chọn sao + nhận xét hiển thị đúng, gửi thành công, danh sách review xuất hiện và điểm trung bình cập nhật ngay nhờ invalidate `['product', id]`; avatar lỗi có fallback chữ cái đầu.
 
 ### 8.2 Lỗi tồn đọng ngoài phạm vi 4 gói
 

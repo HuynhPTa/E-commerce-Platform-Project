@@ -467,3 +467,63 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 900px) {
   .product-detail { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   Công việc 8 — Đánh giá sản phẩm (F16)
+   ========================================================================== */
+.product-reviews {
+  margin-top: 28px; padding: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.review-summary {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border);
+}
+.review-summary h2 { margin: 0; }
+.review-summary__score { display: flex; align-items: center; gap: 12px; }
+.review-summary__score > strong { font-size: 32px; line-height: 1; color: var(--primary); }
+.review-summary__score .cell-sub { display: block; margin-top: 4px; }
+.review-stars { display: inline-flex; align-items: center; gap: 2px; color: #d1d5db; }
+.review-stars .is-filled { color: #f59e0b; }
+.review-stars__value { margin-left: 4px; color: var(--muted); font-size: 12px; }
+.review-cta {
+  padding: 12px 14px; margin-bottom: 16px;
+  border: 1px dashed var(--border); border-radius: var(--radius);
+  background: #fafafb; color: var(--muted);
+}
+.review-cta a { color: var(--primary); font-weight: 600; }
+.review-form {
+  margin-bottom: 20px; padding: 16px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: #fafafb;
+}
+.review-form h3 { margin-bottom: 10px; }
+.review-form .field { margin-bottom: 10px; }
+.review-form .btn { margin-top: 4px; }
+.rating-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rating-picker__stars { display: flex; gap: 2px; }
+.rating-picker__star { padding: 2px; border: none; background: none; color: #d1d5db; }
+.rating-picker__star:hover { background: none; }
+.rating-picker__star.is-active { color: #f59e0b; }
+.rating-picker__label { color: var(--muted); font-size: 13px; }
+.review-list { list-style: none; margin: 0; padding: 0; }
+.review-item { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid #f0f0f3; }
+.review-item:first-child { border-top: 0; }
+.review-avatar {
+  display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 50%; object-fit: cover;
+  background: var(--primary-soft); color: var(--primary); font-weight: 700;
+}
+.review-body { flex: 1; min-width: 0; }
+.review-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 3px;
+}
+.review-comment { margin: 6px 0 0; white-space: pre-line; overflow-wrap: anywhere; }
+.review-empty {
+  display: grid; place-items: center; gap: 6px;
+  padding: 28px 16px; color: var(--muted); text-align: center;
+}
+.review-empty p { margin: 0; }
+.review-empty svg { color: #c4c4cc; }
+.product-reviews .alert { margin: 14px 0 0; }
