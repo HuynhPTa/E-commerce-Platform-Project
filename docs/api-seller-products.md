@@ -191,8 +191,11 @@ Response `result` = `ProductVariantResponse`.
 
 ### 3.7. `PUT /api/seller/products/{id}/variants/{variantId}`
 
-Body giống mục 3.6 (gửi đầy đủ các trường cần cập nhật; trường bỏ trống giữ nguyên giá trị cũ,
-riêng `attributes`/`imageUrl` gửi `null` sẽ xoá giá trị).
+Body giống mục 3.6. Đây là **cập nhật toàn phần** (full replace):
+
+- `priceMinor`, `stockQuantity`: bắt buộc.
+- `sku` / `imageUrl`: gửi `null` để xoá giá trị.
+- `attributes`: gửi `null` → `{}` (không giữ giá trị cũ).
 
 Response `result` = `ProductVariantResponse`.
 
