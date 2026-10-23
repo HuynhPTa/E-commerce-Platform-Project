@@ -4,6 +4,7 @@ import com.ecommerce.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,6 +52,16 @@ public class GlobalExceptionHandler {
         apiResponse.setCode(ErrorCode.INVALID_INPUT.getCode());
         apiResponse.setMessage(ErrorCode.INVALID_INPUT.getMessage());
         return ResponseEntity.badRequest().body(apiResponse);
+    }
+
+    // Upload ảnh vượt quá dung lượng multipart cho phép -> trả mã lỗi rõ ràng thay vì 500
+    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiResponse<String>> handlingMaxUploadSize(MaxUploadSizeExceededException exception) {
+        ErrorCode errorCode = ErrorCode.PRODUCT_IMAGE_TOO_LARGE;
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 
     @ExceptionHandler(value = Exception.class)
