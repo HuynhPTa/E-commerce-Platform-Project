@@ -271,6 +271,7 @@ Frontend/src/
 ### 6.1 Auth (Đăng ký / Đăng nhập)
 - **Backend**: `POST /api/auth/register` tạo user mới (hash password bằng bcrypt/argon2, kiểm tra email trùng); `POST /api/auth/login` verify credential, trả JWT; `GET /api/me` lấy hồ sơ user hiện tại (yêu cầu Bearer token). `SecurityConfig` phải chặn mọi endpoint khác 401 nếu không có token hợp lệ.
 - **Frontend**: `routes/login.jsx`, `routes/register.jsx` dùng `useLoginMutation`/`useRegisterMutation`; token lưu `localStorage`, gắn tự động qua axios interceptor (`api/client.js`); sau login invalidate `['user','me']`.
+- **OAuth2 Google/Facebook**: dùng Spring Security OAuth2 client sẵn có (`/oauth2/authorization/{google|facebook}`). Backend tự tạo user nếu email chưa tồn tại, chặn tài khoản bị khoá/xoá mềm, cấp JWT rồi redirect về `/oauth2/redirect?token=...`. Credential lấy từ `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`; redirect URI khai báo ở provider là `http://localhost:8080/login/oauth2/code/{google|facebook}`.
 
 ### 6.2 Category (Danh mục)
 - **Backend**: CRUD `categories` (chỉ Admin tạo/sửa/xoá), `GET /api/categories` public trả cây danh mục (dùng `parent_id` tự tham chiếu). Cần API trả dạng cây (nested) hoặc flat + FE tự dựng cây.
@@ -290,7 +291,7 @@ Frontend/src/
 
 ### 6.6 Cart (nhóm theo shop)
 - **Backend**: `GET/POST/PUT/DELETE /api/cart` — thêm lại sản phẩm đã có trong giỏ thì tăng `quantity` (UNIQUE constraint), không tạo dòng mới.
-- **Frontend**: `queries/useCart.js` — **optimistic update thật**: UI đổi ngay khi bấm "Thêm vào giỏ", rollback nếu BE trả lỗi (vd hết hàng — `InsufficientStockException`).
+- **Frontend**: `queries/useCart.js` — **optimistic update thật**: UI đổi ngay khi bấm "Thêm vào giỏ", rollback nếu BE trả lỗi (vd hết hàng — `InsufficientStockException`). Trang `/cart` nhóm theo shop, có stepper số lượng, cảnh báo tồn kho thấp, tóm tắt đơn sticky và trạng thái rỗng/loading/error; chưa đăng nhập thì hiện lời mời đăng nhập thay vì gọi API.
 
 ### 6.7 Checkout (tách đơn theo shop)
 - **Backend**: `POST /api/checkout` — logic quan trọng nhất: 1 giỏ hàng có sản phẩm từ N shop → tạo `checkout_session` + N `orders` (mỗi order 1 shop) trong **cùng 1 `@Transactional`**, đồng thời trừ `stock_quantity` (check `>= quantity` trong cùng câu lệnh update để tránh race condition).
@@ -309,12 +310,12 @@ Frontend/src/
 - **Frontend**: `components/review/ReviewForm.jsx`, `ReviewList.jsx`, `RatingSummary.jsx`.
 
 ### 6.11 Seller Dashboard
-- **Backend**: tổng hợp API cho seller: đơn hàng của shop, tồn kho theo sản phẩm, doanh thu cơ bản (tổng `total_minor` các order `COMPLETED`).
-- **Frontend**: `routes/seller/dashboard.jsx` — bundle riêng, lazy-load, tách khỏi bundle Buyer.
+- **Backend**: `GET /api/seller/dashboard` tổng hợp doanh thu đơn `COMPLETED`, số đơn theo trạng thái, sản phẩm đang bán; `GET /api/seller/orders` + `GET /api/seller/orders/{id}`; `PATCH /api/seller/orders/{id}/status` theo luồng `PENDING → CONFIRMED → SHIPPING → DELIVERED → COMPLETED`, huỷ được ở `PENDING`/`CONFIRMED` và hoàn tồn kho.
+- **Frontend**: `routes/seller/dashboard.jsx`, `orders.jsx`, `settings.jsx` — bundle riêng, lazy-load, tách khỏi bundle Buyer. Cài đặt shop dùng `PUT /api/shops/me`, đổi tên shop đồng bộ sang sản phẩm.
 
 ### 6.12 Admin
-- **Backend**: duyệt shop (`PATCH /api/admin/shops/{id}/status`), quản lý category, xem đơn toàn sàn.
-- **Frontend**: `routes/admin/dashboard.jsx`, `shops.jsx`, `categories.jsx` — bundle riêng, lazy-load.
+- **Backend**: duyệt shop (`PATCH /api/admin/shops/{id}/status`), quản lý category, `GET /api/admin/dashboard`, `GET /api/admin/orders` + chi tiết, `GET /api/admin/users` và `PATCH /api/admin/users/{id}/status` (khoá/mở khoá, chặn tự khoá và khoá tài khoản ADMIN).
+- **Frontend**: `routes/admin/dashboard.jsx`, `shops.jsx`, `categories.jsx`, `orders.jsx`, `users.jsx` — bundle riêng, lazy-load.
 
 ---
 
@@ -334,11 +335,11 @@ Frontend/src/
 |---|------|-------|---|
 | F0 | Setup Vite+React19+TanStack, kết nối Spring Boot+MySQL | FE+BE | ✅ Xong |
 | F1 | Cài & wire TanStack Query/Router; `queryClient.js`, `router.jsx`; `App.jsx` bọc Provider + ErrorBoundary | FE | ✅ Xong |
-| F2 | JWT thật + `SecurityConfig` chặn 401 | BE | ✅ Xong — JWT HS512, endpoint thiếu token trả 401; còn lỗi scope admin (xem 8.2) |
-| F3 | `useLoginMutation`, `useRegisterMutation`, invalidate `['user','me']` | FE | ✅ Xong (đăng ký/đăng nhập chạy thật) |
+| F2 | JWT thật + `SecurityConfig` chặn 401 | BE | ✅ Xong — JWT HS512, endpoint thiếu token trả 401; scope lấy theo `is_admin`/`role` |
+| F3 | `useLoginMutation`, `useRegisterMutation`, invalidate `['user','me']` | FE | ✅ Xong (đăng ký/đăng nhập chạy thật, có OAuth2 Google/Facebook) |
 | F4 | `UserController /me`; `GlobalExceptionHandler` | BE | ✅ Xong |
 | F5 | `categories` — entity, migration, CRUD API + FE | FE+BE | ✅ Xong (cây danh mục, admin CRUD, sidebar/dropdown) |
-| F6 | `shops` — entity, migration, đăng ký shop | FE+BE | ✅ Xong (đăng ký, trang public, admin duyệt/khoá; API admin đang bị ảnh hưởng bởi lỗi scope JWT) |
+| F6 | `shops` — entity, migration, đăng ký shop | FE+BE | ✅ Xong (đăng ký, trang public, admin duyệt/khoá, seller sửa thông tin shop) |
 | F7 | `products`+`product_variants`+`product_images` | FE+BE | ✅ Xong — CRUD Seller, variant, upload/xoá ảnh, gallery Buyer; E2E Seller tạo sản phẩm có ảnh |
 | F8 | Trang danh sách + chi tiết sản phẩm | FE | ✅ Xong |
 | F9 | Tìm kiếm + lọc + phân trang | FE+BE | ✅ Xong (validateSearch, debounce, lọc category/giá/sort) |
@@ -347,21 +348,20 @@ Frontend/src/
 | F12 | `checkout_sessions`+`orders`+`order_items` trong `@Transactional` | BE | ✅ Xong — transaction tách đơn theo shop, trừ kho, 11/11 test pass; E2E checkout 2 shop thành công |
 | F13 | VNPay sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `VNPAY`, chưa tạo URL/callback thật |
 | F14 | Momo sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `MOMO`, chưa tạo URL/callback thật |
-| F15 | Theo dõi & cập nhật trạng thái đơn | FE+BE | ⬜ Chưa |
-| F16 | `reviews` | FE+BE | ⬜ Chưa |
-| F17 | Seller Dashboard | FE+BE | 🔶 Một phần — có thông tin shop/số sản phẩm; chưa thống kê đơn/doanh thu |
-| F18 | Admin | FE+BE | 🔶 Một phần — có quản lý shop/category; dashboard tổng hợp và xem đơn toàn sàn chưa |
-| F19 | Index DB | BE | ⬜ Chưa (cần rà index cho search/checkout) |
+| F15 | Theo dõi & cập nhật trạng thái đơn | FE+BE | 🔶 Một phần — Seller cập nhật trạng thái, Admin xem toàn sàn; chưa có trang đơn của Buyer |
+| F16 | `reviews` | FE+BE | ✅ Xong — POST /api/reviews + eligibility + danh sách; rating_avg/count tự tính; UI chọn sao/form/phân trang; 9 test review |
+| F17 | Seller Dashboard | FE+BE | ✅ Xong — doanh thu/đơn theo trạng thái/sản phẩm, quản lý đơn, cài đặt shop |
+| F18 | Admin | FE+BE | ✅ Xong — dashboard tổng hợp, đơn toàn sàn, người dùng, shop/category |
+| F19 | Index DB | BE | ✅ Xong — FULLTEXT `products.name`, B-tree shop/category/status-created, trigger `sold_count`; migration V11–V14 |
 | F20 | Code splitting/Profiler | FE | ✅ Đã tách bundle seller/admin |
 | F21 | Test checkout nhiều shop + webhook | FE+BE | 🔶 Một phần — integration test checkout nhiều shop 11/11 pass; webhook chờ F13/F14 |
 | F22 | Build production, polish, demo | FE+BE | ⬜ Chưa (đã có seed dữ liệu mẫu) |
 | F23 | Trang chủ: khối sản phẩm đề xuất (dùng API F9, sort `best_selling`) | FE | ✅ Xong — 8 sản phẩm, có link xem tất cả |
 
 **Việc tiếp theo** (theo thứ tự ưu tiên):
-1. Sửa lỗi JWT admin: `AuthenticationService.generateToken` đang hardcode `scope=USER`, khiến mọi tài khoản admin nhận 403 ở API admin. Đây là lỗi có sẵn, cần sửa trước khi hoàn thiện F18.
-2. Làm F13/F14 (VNPay/Momo sandbox) kèm callback/IPN idempotent, rồi bổ sung test webhook cho F21.
-3. Làm F15 (theo dõi đơn) và F16 (review).
-4. Hoàn thiện F17/F18 (dashboard Seller/Admin), F19 (index), F22 (build production + demo).
+1. Làm F13/F14 (VNPay/Momo sandbox) kèm callback/IPN idempotent, rồi bổ sung test webhook cho F21.
+2. Bổ sung trang đơn hàng của Buyer để hoàn tất F15 (timeline trạng thái).
+3. Cấu hình credential Google/Facebook thật và kiểm thử OAuth2 end-to-end; sau đó làm F22 (build production + demo).
 
 ### 8.1 Kết quả kiểm chứng gần nhất (2026-10-24)
 
@@ -373,6 +373,18 @@ Frontend/src/
   - Trang kết quả đọc dữ liệu từ `GET /api/checkout/{id}` (không đọc số liệu từ URL); kiểm tra ownership trả đúng 404/401 cho session không thuộc buyer.
 - Seed dữ liệu mẫu: `node scripts/seed-demo.mjs` tạo 3 shop, 6 sản phẩm có ảnh, 4 tài khoản demo; chạy lại không tạo bản ghi trùng.
 - Trang chủ có khối **Sản phẩm đề xuất** (F23): lấy 8 sản phẩm từ API F9 với `sort=best_selling`, hiển thị bằng `ProductCard`, có trạng thái loading/error/rỗng và link xem tất cả.
+- Công việc 8 — Review (F16/F19):
+  - `mvn clean test`: **20/20 pass** (11 checkout + 9 review), gồm các case đơn chưa COMPLETED, món của người khác, trùng `order_item`, trùng sản phẩm trong cùng đơn và phân trang.
+  - Migration V11–V14 áp lên `ecommerce_db`: bảng `reviews` có 2 unique key, FULLTEXT `ft_products_name`, 3 B-tree (`shop_id`, `category_id`, `status, created_at`), 2 trigger `sold_count`; đã backfill `sold_count` từ đơn COMPLETED.
+  - E2E API: buyer demo mua sản phẩm 5, chuyển đơn sang `COMPLETED` → `sold_count` 0 → 1; gửi review 5 sao → `rating_avg=5.0`, `rating_count=1`; gửi lại trả **409 / 1163**; chuyển đơn rời COMPLETED rồi trở lại → `sold_count` trừ/cộng đúng.
+  - E2E UI (Chrome headless): form chọn sao + nhận xét hiển thị đúng, gửi thành công, danh sách review xuất hiện và điểm trung bình cập nhật ngay nhờ invalidate `['product', id]`; avatar lỗi có fallback chữ cái đầu.
+- Admin/Seller/OAuth2 (2026-10-24):
+  - `mvn test`: **29/29 pass** (11 checkout + 9 review + 5 admin + 4 seller), gồm test lọc người dùng cũ có `role = NULL`.
+  - E2E API trên backend mới: admin dashboard/đơn toàn sàn/người dùng, khoá rồi mở khoá user; seller dashboard/đơn/chi tiết; luồng `PENDING → CONFIRMED → SHIPPING → DELIVERED → COMPLETED`, chuyển trạng thái sai trả 400.
+  - Giỏ hàng: thêm → sửa số lượng → xoá qua API thật; checkout tạo order shop 10 rồi seller xử lý đến `COMPLETED`.
+  - Cài đặt shop `PUT /api/shops/me` giữ nguyên trạng thái duyệt và đồng bộ tên shop sang sản phẩm.
+  - OAuth2 trả 302 sang Google/Facebook với redirect URI `/login/oauth2/code/{provider}`; chưa thể đăng nhập thật vì credential còn là dummy.
+  - `npm run build` pass; ESLint các file mới pass (còn 1 lỗi `set-state-in-effect` có sẵn ở `routes/products/index.jsx`).
 
 ### 8.2 Lỗi tồn đọng ngoài phạm vi 4 gói
 

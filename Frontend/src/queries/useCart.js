@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchCart, addToCart, updateCartItem, removeCartItem } from "../api/cart.api";
+import { hasToken } from "./useMe";
 
 export function useCartQuery() {
   return useQuery({
     queryKey: ["cart"],
     queryFn: fetchCart,
     staleTime: 0, // giỏ hàng phải luôn đúng số lượng thật ngay lúc thao tác
+    enabled: hasToken(), // chưa đăng nhập thì không gọi API (tránh 401)
   });
 }
 

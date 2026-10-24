@@ -73,6 +73,32 @@ public class ShopService {
                 .orElseThrow(() -> new AppException(ErrorCode.SHOP_NOT_EXISTED));
     }
 
+    // Cài đặt shop: chỉ sửa thông tin, không đổi trạng thái duyệt.
+    @Transactional
+    public ShopResponse updateMyShop(String email, ShopRequest req) {
+        User user = userRepository.findByEmailAndIsDelete(email, 0)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Shop shop = shopRepository.findByOwnerId(user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.SHOP_NOT_EXISTED));
+
+        String name = req.getName().trim();
+        if (shopRepository.existsByNameIgnoreCaseAndIdNot(name, shop.getId())) {
+            throw new AppException(ErrorCode.SHOP_NAME_EXISTED);
+        }
+        boolean renamed = !shop.getName().equalsIgnoreCase(name);
+        shop.setName(name);
+        shop.setDescription(blankToNull(req.getDescription()));
+        shop.setLogoUrl(blankToNull(req.getLogoUrl()));
+        shop.setPhone(req.getPhone().trim());
+        shop.setPickupAddress(req.getPickupAddress().trim());
+        Shop saved = shopRepository.save(shop);
+        if (renamed) {
+            // Product lưu sẵn shopName để hiển thị; đổi tên shop phải cập nhật theo
+            productRepository.updateShopNameByShopId(String.valueOf(saved.getId()), name);
+        }
+        return toResponse(saved, true);
+    }
+
     // ---------- Công khai ----------
 
     // Khách chỉ thấy shop đã duyệt; chủ shop và Admin xem được cả shop chưa duyệt (kèm thông tin riêng)

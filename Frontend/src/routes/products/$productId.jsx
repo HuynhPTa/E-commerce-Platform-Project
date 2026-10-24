@@ -5,6 +5,7 @@ import { useProductQuery } from "../../queries/useProducts";
 import { useAddToCartMutation } from "../../queries/useCart";
 import VariantSelector from "../../components/product/VariantSelector";
 import ProductImageGallery from "../../components/product/ProductImageGallery";
+import ProductReviews from "../../components/review/ProductReviews";
 import { formatVnd } from "../../lib/format";
 
 export default function ProductDetailPage() {
@@ -98,6 +99,13 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      <ProductReviews
+        key={product.id}
+        productId={productId}
+        ratingAvg={product.ratingAvg}
+        ratingCount={product.ratingCount}
+      />
     </section>
   );
 }

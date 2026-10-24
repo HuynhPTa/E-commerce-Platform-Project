@@ -9,6 +9,7 @@ import { useDebounce } from "../../../hooks/useDebounce";
 import Modal from "../../../components/common/Modal";
 import { errMsg, formatDate } from "../../../lib/errors";
 import { formatVnd } from "../../../lib/format";
+import { assetUrl } from "../../../lib/assetUrl";
 
 const TABS = [
   { key: "ACTIVE", label: "Đang bán" },
@@ -28,8 +29,10 @@ function totalStock(product) {
 }
 
 function ProductThumb({ product }) {
-  return product.thumbnailUrl
-    ? <img className="product-thumb" src={product.thumbnailUrl} alt="" loading="lazy" />
+  const [failed, setFailed] = useState(false);
+  const src = assetUrl(product.thumbnailUrl);
+  return src && !failed
+    ? <img className="product-thumb" src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
     : <span className="product-thumb product-thumb-empty"><ImageOff size={18} /></span>;
 }
 

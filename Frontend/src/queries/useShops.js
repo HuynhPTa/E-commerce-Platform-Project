@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  registerShop, fetchMyShop, fetchShop,
+  registerShop, fetchMyShop, fetchShop, updateMyShop,
   fetchAdminShops, fetchAdminShopSummary, updateShopStatus,
 } from "../api/shop.api";
 import { hasToken } from "./useMe";
@@ -37,6 +37,21 @@ export function useRegisterShop() {
     onSuccess: (shop) => {
       queryClient.setQueryData(MY_SHOP_KEY, shop);
       queryClient.invalidateQueries({ queryKey: ADMIN_SHOPS_KEY });
+    },
+  });
+}
+
+// Cài đặt shop: cập nhật thông tin, giữ nguyên trạng thái duyệt
+export function useUpdateMyShop() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateMyShop,
+    onSuccess: (shop) => {
+      queryClient.setQueryData(MY_SHOP_KEY, shop);
+      queryClient.invalidateQueries({ queryKey: ["shop", String(shop.id)] });
+      // Tên shop được lưu kèm trên sản phẩm nên danh sách/chi tiết sản phẩm cần tải lại
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 }

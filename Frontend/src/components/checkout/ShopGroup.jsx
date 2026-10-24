@@ -1,4 +1,5 @@
 import { formatVnd } from '../../lib/cartUtils'
+import { assetUrl, onImageError } from '../../lib/assetUrl'
 
 /** Hiển thị các sản phẩm của 1 shop trong đơn. Tái dùng được cho trang giỏ hàng. */
 export default function ShopGroup({ shopName, items, subtotal }) {
@@ -10,11 +11,12 @@ export default function ShopGroup({ shopName, items, subtotal }) {
           <li key={item.id} className="checkout-item">
             {item.thumbnailUrl ? (
               <img
-                src={item.thumbnailUrl}
+                src={assetUrl(item.thumbnailUrl)}
                 alt={item.productName}
                 width={56}
                 height={56}
                 loading="lazy"
+                onError={onImageError}
               />
             ) : (
               <span className="checkout-item__thumb" aria-hidden="true" />

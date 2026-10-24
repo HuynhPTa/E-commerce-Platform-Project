@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ImagePlus, LoaderCircle, Trash2, TriangleAlert, X } from "lucide-react";
 import Modal from "../common/Modal";
 import { errMsg } from "../../lib/errors";
+import { assetUrl, onImageError } from "../../lib/assetUrl";
 import { useDeleteProductImage, useUploadProductImage } from "../../queries/useSellerProducts";
 
 const MAX_IMAGES = 10;
@@ -33,7 +34,7 @@ function DeleteImageModal({ product, image, onClose }) {
     >
       <p>Xoá ảnh này khỏi sản phẩm? File trên máy chủ cũng bị xoá và không thể khôi phục.</p>
       <div className="image-delete-preview">
-        <img src={image.url} alt="" />
+        <img src={assetUrl(image.url)} alt="" onError={onImageError} />
       </div>
       {mutation.isError && <div className="alert alert-danger"><TriangleAlert size={18} /><div>{errMsg(mutation.error)}</div></div>}
     </Modal>
@@ -144,7 +145,7 @@ export default function ImageManager({ product, disabled = false }) {
         <div className="image-grid">
           {images.map((image) => (
             <figure className="image-tile" key={image.id}>
-              <img src={image.url} alt="" />
+              <img src={assetUrl(image.url)} alt="" onError={onImageError} />
               {image.url === product.thumbnailUrl && <span className="image-badge">Ảnh bìa</span>}
               <button type="button" className="image-remove" title="Xoá ảnh" disabled={disabled}
                       onClick={() => setDeleting(image)}>
