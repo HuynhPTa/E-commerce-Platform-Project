@@ -7,9 +7,14 @@ Frontend/.env
 Backend/target/
 Backend/.mvn/
 
+# File upload (ảnh sản phẩm lưu cục bộ khi chạy app)
+/uploads/
+/Backend/uploads/
+
 # IDE & OS
 .idea/
 *.iml
 .DS_Store
 *.log
 Backend/src/main/resources/application.properties
+Backend/src/main/resources/application-secrets.properties

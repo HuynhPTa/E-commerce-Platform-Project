@@ -1,13 +1,16 @@
 package com.ecommerce.service;
 
 import com.ecommerce.dto.response.PageResponse;
+import com.ecommerce.dto.response.ProductImageResponse;
 import com.ecommerce.dto.response.ProductResponse;
 import com.ecommerce.dto.response.ProductVariantResponse;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.ProductVariant;
 import com.ecommerce.exception.AppException;
 import com.ecommerce.exception.ErrorCode;
+import com.ecommerce.repository.ProductImageRepository;
 import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.util.MediaUrlUtil;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,7 @@ import java.util.Set;
 public class ProductService {
     private static final int MAX_PAGE_SIZE = 100;
     private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
     private final CategoryService categoryService;
 
     @Transactional(readOnly = true)
@@ -88,7 +92,7 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.unsorted());
         Page<Product> result = productRepository.findAll(specification, pageable);
-        return new PageResponse<>(result.getContent().stream().map(this::toResponse).toList(), safePage,
+        return new PageResponse<>(result.getContent().stream().map(p -> toResponse(p, false)).toList(), safePage,
                 safeSize, result.getTotalElements(), result.getTotalPages());
     }
 
@@ -97,19 +101,27 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .filter(p -> "ACTIVE".equalsIgnoreCase(p.getStatus()))
                 .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
-        return toResponse(product);
+        return toResponse(product, true);
     }
 
-    private ProductResponse toResponse(Product product) {
+    private ProductResponse toResponse(Product product, boolean withImages) {
         List<ProductVariantResponse> variants = product.getVariants().stream()
                 .map(this::toVariantResponse).toList();
+        List<ProductImageResponse> images = withImages
+                ? productImageRepository.findAllByProductIdOrderBySortOrderAscIdAsc(product.getId()).stream()
+                        .map(image -> new ProductImageResponse(image.getId(),
+                                MediaUrlUtil.toAbsolute(image.getUrl()), image.getSortOrder()))
+                        .toList()
+                : List.of();
         return new ProductResponse(product.getId(), product.getName(), product.getDescription(),
-                product.getCategoryId(), product.getShopId(), product.getShopName(), product.getThumbnailUrl(),
-                product.getRatingAvg(), product.getRatingCount(), product.getSoldCount(), variants);
+                product.getCategoryId(), product.getShopId(), product.getShopName(),
+                MediaUrlUtil.toAbsolute(product.getThumbnailUrl()),
+                product.getRatingAvg(), product.getRatingCount(), product.getSoldCount(), variants, images);
     }
 
     private ProductVariantResponse toVariantResponse(ProductVariant variant) {
         return new ProductVariantResponse(variant.getId(), variant.getSku(), variant.getAttributes(),
-                variant.getPriceMinor(), variant.getStockQuantity(), variant.getImageUrl());
+                variant.getPriceMinor(), variant.getStockQuantity(),
+                MediaUrlUtil.toAbsolute(variant.getImageUrl()));
     }
 }

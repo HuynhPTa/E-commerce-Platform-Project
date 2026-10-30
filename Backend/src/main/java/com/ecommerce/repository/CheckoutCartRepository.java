@@ -25,7 +25,7 @@ public class CheckoutCartRepository {
             int cartItemId,
             int variantId,
             int quantity,
-            int unitPriceMinor,
+            long unitPriceMinor,
             String attributesJson,
             int productId,
             String productName,
@@ -37,13 +37,13 @@ public class CheckoutCartRepository {
     public List<CartLine> findLines(int userId, Collection<Integer> cartItemIds) {
         StringBuilder sql = new StringBuilder("""
                 SELECT ci.id AS cart_item_id, ci.variant_id, ci.quantity,
-                       v.price_minor, CAST(v.attributes AS CHAR) AS attributes,
+                       v.price_minor, v.attributes AS attributes,
                        p.id AS product_id, p.name AS product_name,
                        p.shop_id, p.status AS product_status
                 FROM cart_items ci
                 JOIN product_variants v ON v.id = ci.variant_id
                 JOIN products p ON p.id = v.product_id
-                WHERE ci.user_id = :userId AND p.deleted_at IS NULL
+                WHERE ci.user_id = :userId
                 """);
         MapSqlParameterSource params = new MapSqlParameterSource("userId", userId);
         if (cartItemIds != null && !cartItemIds.isEmpty()) {
@@ -56,7 +56,7 @@ public class CheckoutCartRepository {
                 rs.getInt("cart_item_id"),
                 rs.getInt("variant_id"),
                 rs.getInt("quantity"),
-                rs.getInt("price_minor"),
+                rs.getLong("price_minor"),
                 rs.getString("attributes"),
                 rs.getInt("product_id"),
                 rs.getString("product_name"),

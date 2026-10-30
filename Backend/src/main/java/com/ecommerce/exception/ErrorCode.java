@@ -48,6 +48,21 @@ public enum ErrorCode {
     INVALID_CART_ITEM(1062, "Có sản phẩm không thuộc giỏ hàng của bạn", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_AVAILABLE(1063, "Sản phẩm hiện không còn bán", HttpStatus.BAD_REQUEST),
 
+    // --- Checkout hardening (gói C, dải 1150-1199) ---
+    SHOP_NOT_AVAILABLE(1150, "Shop hiện không hoạt động hoặc chưa được duyệt", HttpStatus.BAD_REQUEST),
+    CHECKOUT_TOTAL_TOO_LARGE(1151, "Tổng giá trị đơn hàng vượt quá giới hạn cho phép", HttpStatus.BAD_REQUEST),
+
+    // --- Admin & Seller orders/users (dải 1170-1189) ---
+    ORDER_NOT_EXISTED(1170, "Đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
+    CANNOT_MODIFY_SELF(1171, "Bạn không thể thay đổi trạng thái tài khoản của chính mình", HttpStatus.BAD_REQUEST),
+    CANNOT_LOCK_ADMIN(1172, "Không thể khoá tài khoản quản trị viên", HttpStatus.BAD_REQUEST),
+
+    // --- Review Module (Công việc 8, dải 1160-1169) ---
+    REVIEW_ORDER_ITEM_NOT_FOUND(1160, "Không tìm thấy món hàng cần đánh giá", HttpStatus.NOT_FOUND),
+    REVIEW_NOT_ALLOWED(1161, "Bạn không có quyền đánh giá món hàng này", HttpStatus.FORBIDDEN),
+    REVIEW_ORDER_NOT_COMPLETED(1162, "Chỉ có thể đánh giá khi đơn hàng đã hoàn tất", HttpStatus.BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS(1163, "Sản phẩm này đã được đánh giá trong đơn hàng", HttpStatus.CONFLICT),
+
     // --- Category Module (Công việc của Hoàng) ---
     CATEGORY_NOT_EXISTED(1040, "Danh mục không tồn tại", HttpStatus.NOT_FOUND),
     CATEGORY_SLUG_EXISTED(1041, "Slug danh mục đã tồn tại", HttpStatus.CONFLICT),
@@ -59,6 +74,19 @@ public enum ErrorCode {
     SHOP_NOT_EXISTED(1050, "Shop không tồn tại", HttpStatus.NOT_FOUND),
     SHOP_EXISTED(1051, "Bạn đã đăng ký shop rồi", HttpStatus.CONFLICT),
     SHOP_NAME_EXISTED(1052, "Tên shop đã được sử dụng", HttpStatus.CONFLICT),
+
+    // --- Seller Product Module (Gói A - Công việc 3, dải 1100-1149) ---
+    PRODUCT_NOT_EXISTED(1100, "Sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_OWNED(1101, "Bạn không có quyền quản lý sản phẩm này", HttpStatus.FORBIDDEN),
+    VARIANT_NOT_EXISTED(1102, "Biến thể sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    LAST_VARIANT_DELETE_NOT_ALLOWED(1103, "Không thể xoá biến thể cuối cùng của sản phẩm", HttpStatus.BAD_REQUEST),
+    VARIANT_SKU_EXISTED(1104, "SKU biến thể đã tồn tại", HttpStatus.CONFLICT),
+    VARIANT_IN_USE(1105, "Biến thể đã có trong đơn hàng, không thể xoá", HttpStatus.CONFLICT),
+    PRODUCT_IMAGE_NOT_EXISTED(1106, "Ảnh sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    PRODUCT_IMAGE_LIMIT_EXCEEDED(1107, "Mỗi sản phẩm chỉ được tối đa 10 ảnh", HttpStatus.BAD_REQUEST),
+    PRODUCT_IMAGE_INVALID_TYPE(1108, "Chỉ chấp nhận file ảnh JPEG, PNG, WEBP hoặc GIF", HttpStatus.BAD_REQUEST),
+    PRODUCT_IMAGE_TOO_LARGE(1109, "Ảnh vượt quá dung lượng cho phép (5 MB)", HttpStatus.BAD_REQUEST),
+    PRODUCT_IMAGE_UPLOAD_FAILED(1110, "Lưu ảnh thất bại, vui lòng thử lại", HttpStatus.INTERNAL_SERVER_ERROR),
 
     UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
 

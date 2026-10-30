@@ -12,6 +12,7 @@ import com.ecommerce.exception.InsufficientStockException;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.UserRepository;
+import com.ecommerce.util.MediaUrlUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,7 +98,7 @@ public class CartService {
         ProductVariant variant = item.getVariant();
         Product product = variant.getProduct();
         return new CartItemResponse(item.getId(), variant.getId(), product.getId(), product.getName(),
-                variant.getImageUrl() != null ? variant.getImageUrl() : product.getThumbnailUrl(),
+                MediaUrlUtil.toAbsolute(variant.getImageUrl() != null ? variant.getImageUrl() : product.getThumbnailUrl()),
                 product.getShopId(), product.getShopName(),
                 variant.getAttributes() == null ? Map.of() : variant.getAttributes(),
                 variant.getPriceMinor(), variant.getStockQuantity(), item.getQuantity());

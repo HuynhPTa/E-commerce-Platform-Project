@@ -18,6 +18,12 @@ export async function fetchMyShop() {
   }
 }
 
+// Cài đặt shop: chỉ cập nhật thông tin, không đổi trạng thái duyệt
+export async function updateMyShop(payload) {
+  const { data } = await apiClient.put("/shops/me", payload);
+  return data.result;
+}
+
 // ---- Công khai ----
 export async function fetchShop(shopId) {
   const { data } = await apiClient.get(`/shops/${shopId}`);

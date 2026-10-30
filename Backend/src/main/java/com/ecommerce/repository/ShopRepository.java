@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,4 +36,10 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
 
     @Query("select s.status, count(s) from Shop s group by s.status")
     List<Object[]> countByStatus();
+
+    // Gắn shop vào danh sách người dùng của Admin trong 1 query
+    @EntityGraph(attributePaths = "owner")
+    List<Shop> findByOwnerIdIn(Collection<Integer> ownerIds);
+
+    long countByStatus(ShopStatus status);
 }

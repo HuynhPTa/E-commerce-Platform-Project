@@ -3,12 +3,15 @@ import { useState } from "react";
 // Tầng 1A — state "đang chọn variant nào" chỉ liên quan tới UI của component này,
 // KHÔNG phải server state (server state là danh sách variants, đến từ props).
 // Nên dùng useState cục bộ, không đẩy lên Context/Redux/global.
-export default function VariantSelector({ variants, onSelect }) {
-  const [selectedId, setSelectedId] = useState(variants[0]?.id);
+// selectedId (tuỳ chọn) cho phép nơi dùng điều khiển lựa chọn, vd trang chi tiết
+// tự chọn biến thể còn hàng đầu tiên.
+export default function VariantSelector({ variants, selectedId: controlledId, onSelect }) {
+  const [internalId, setInternalId] = useState(variants[0]?.id);
+  const selectedId = controlledId ?? internalId;
 
   function handleSelect(variant) {
-    setSelectedId(variant.id);
-    onSelect(variant);
+    setInternalId(variant.id);
+    onSelect?.(variant);
   }
 
   return (
@@ -21,7 +24,7 @@ export default function VariantSelector({ variants, onSelect }) {
           disabled={v.stockQuantity === 0}
           onClick={() => handleSelect(v)}
         >
-          {Object.values(v.attributes).join(" / ") || "Mặc định"}
+          {Object.values(v.attributes ?? {}).join(" / ") || "Mặc định"}
         </button>
       ))}
     </div>

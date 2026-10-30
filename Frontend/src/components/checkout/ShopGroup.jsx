@@ -1,4 +1,5 @@
 import { formatVnd } from '../../lib/cartUtils'
+import { assetUrl, onImageError } from '../../lib/assetUrl'
 
 /** Hiển thị các sản phẩm của 1 shop trong đơn. Tái dùng được cho trang giỏ hàng. */
 export default function ShopGroup({ shopName, items, subtotal }) {
@@ -8,13 +9,26 @@ export default function ShopGroup({ shopName, items, subtotal }) {
       <ul className="checkout-shop__items">
         {items.map((item) => (
           <li key={item.id} className="checkout-item">
-            {item.imageUrl && <img src={item.imageUrl} alt={item.productName} width={56} height={56} loading="lazy" />}
+            {item.thumbnailUrl ? (
+              <img
+                src={assetUrl(item.thumbnailUrl)}
+                alt={item.productName}
+                width={56}
+                height={56}
+                loading="lazy"
+                onError={onImageError}
+              />
+            ) : (
+              <span className="checkout-item__thumb" aria-hidden="true" />
+            )}
             <div className="checkout-item__info">
               <div>{item.productName}</div>
-              {item.variantLabel && <small>{item.variantLabel}</small>}
+              {item.variantLabel && <small className="muted">{item.variantLabel}</small>}
             </div>
-            <div>x{item.quantity}</div>
-            <div>{formatVnd(item.price * item.quantity)}</div>
+            <div className="muted">x{item.quantity}</div>
+            <div className="checkout-item__price">
+              {formatVnd(item.unitPriceMinor * item.quantity)}
+            </div>
           </li>
         ))}
       </ul>

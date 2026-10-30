@@ -14,10 +14,19 @@ spring.jpa.open-in-view=false
 # JWT: phai >= 64 ky tu (66 ky tu ben duoi)
 jwt.signerKey=DOI_THANH_CHUOI_NGAU_NHIEN_DAI_IT_NHAT_64_KY_TU
 
-# Google OAuth2: dien gia tri that khi muon dang nhap Google, tam thoi de gia tri gia cho app chay duoc
-spring.security.oauth2.client.registration.google.client-id=dummy-client-id
-spring.security.oauth2.client.registration.google.client-secret=dummy-client-secret
+# Google OAuth2: đặt biến môi trường GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET.
+# Giá trị dummy giúp app khởi động khi chưa cấu hình; đăng nhập Google sẽ lỗi cho tới khi điền thật.
+spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID:dummy-client-id}
+spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET:dummy-client-secret}
 spring.security.oauth2.client.registration.google.scope=email,profile
 
-# Frontend URL (dung de redirect sau khi dang nhap Google)
+# Facebook OAuth2: đặt biến môi trường FACEBOOK_CLIENT_ID / FACEBOOK_CLIENT_SECRET.
+# Redirect URI cần khai báo ở Facebook Developer: http://localhost:8080/login/oauth2/code/facebook
+spring.security.oauth2.client.registration.facebook.client-id=${FACEBOOK_CLIENT_ID:dummy-client-id}
+spring.security.oauth2.client.registration.facebook.client-secret=${FACEBOOK_CLIENT_SECRET:dummy-client-secret}
+spring.security.oauth2.client.registration.facebook.scope=email,public_profile
+# Spring Security mac dinh dung dialog v2.8 (da het ho tro) -> chi dinh phien ban Graph API moi
+spring.security.oauth2.client.provider.facebook.authorization-uri=https://www.facebook.com/v23.0/dialog/oauth
+
+# Frontend URL (dùng để redirect sau khi đăng nhập Google/Facebook)
 app.frontend-url=http://localhost:5173

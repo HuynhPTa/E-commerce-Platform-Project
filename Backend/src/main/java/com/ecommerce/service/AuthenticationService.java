@@ -96,6 +96,10 @@ public class AuthenticationService {
     // FIX: hàm này được gọi nhưng chưa từng được viết
     public String generateToken(User user, boolean isRefresh) {
         long duration = isRefresh ? REFRESH_TOKEN_SECONDS : ACCESS_TOKEN_SECONDS;
+        // Tài khoản admin cũ có thể chỉ có cờ is_admin = true (role mặc định USER),
+        // nên ưu tiên cờ này để token luôn mang đúng quyền ADMIN.
+        boolean admin = user.isAdmin() || "ADMIN".equalsIgnoreCase(user.getRole());
+        String scope = admin ? "ADMIN" : "USER";
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())
@@ -103,7 +107,7 @@ public class AuthenticationService {
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("scope", "USER") // SecurityConfig đọc claim "scope", prefix rỗng
+                .claim("scope", scope) // SecurityConfig đọc claim "scope", prefix rỗng
                 .claim("userId", user.getId())
                 .build();
 

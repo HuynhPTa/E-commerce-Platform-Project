@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ShoppingBag, Search, ShoppingCart, ChevronDown, User, MapPin, Store, ShieldCheck, LogOut,
+  ShoppingBag, Search, ShoppingCart, ChevronDown, User, MapPin, Store, ShieldCheck, LogOut, ReceiptText,
 } from "lucide-react";
 import { useMe, hasToken } from "../../queries/useMe";
 import { useMyShop } from "../../queries/useShops";
@@ -42,6 +42,7 @@ function UserMenu({ me }) {
       {open && (
         <div className="dropdown">
           <Link to="/profile" onClick={go}><User size={16} /> Hồ sơ của tôi</Link>
+          <Link to="/orders" onClick={go}><ReceiptText size={16} /> Đơn mua</Link>
           <Link to="/addresses" onClick={go}><MapPin size={16} /> Địa chỉ nhận hàng</Link>
           <Link to={sellerLink.to} onClick={go}><Store size={16} /> {sellerLink.label}</Link>
           {me.role === "ADMIN" && <Link to="/admin" onClick={go}><ShieldCheck size={16} /> Trang quản trị</Link>}

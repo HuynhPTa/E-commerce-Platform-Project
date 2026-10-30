@@ -3,6 +3,8 @@ import { lazy } from "react";
 import RootLayout from "../routes/__root.jsx";
 import { productSearchSchema } from "../schemas/product-search.schema";
 import { shopProductsSearchSchema } from "../schemas/shop.schema";
+import { checkoutResultSearchSchema } from "../schemas/checkout.schema";
+import { myOrdersSearchSchema } from "../schemas/order.schema";
 import { redirect } from "@tanstack/react-router";
 import { hasToken } from "../queries/useMe";
 // Tầng 1B — TanStack Router: tổ chức route + route params có validate.
@@ -31,6 +33,13 @@ const registerRoute = createRoute({
   component: lazy(() => import("../routes/register.jsx")),
 });
 
+// Backend chuyển về sau khi Google/Facebook xác thực: /oauth2/redirect?token=...
+const oauth2RedirectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/oauth2/redirect",
+  component: lazy(() => import("../routes/oauth2-redirect.jsx")),
+});
+
 const productsIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/products",
@@ -55,7 +64,18 @@ const cartRoute = createRoute({
 const checkoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/checkout",
+  beforeLoad: requireAuth,
   component: lazy(() => import("../routes/checkout.jsx")),
+});
+
+// Màn hình kết quả: chỉ dùng checkoutId để gọi GET /api/checkout/{id},
+// mọi số liệu hiển thị lấy từ response chứ không đọc từ URL.
+const checkoutResultRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/checkout/result",
+  validateSearch: checkoutResultSearchSchema,
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/checkout-result.jsx")),
 });
 
 // Trang công khai của shop: /shops/12?sort=best_selling&page=2
@@ -90,6 +110,37 @@ const sellerIndexRoute = createRoute({
   component: lazy(() => import("../routes/seller/dashboard.jsx")),
 });
 
+// Job 3 — quản lý sản phẩm cho Seller (lazy load giống dashboard)
+const sellerProductsRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/products",
+  component: lazy(() => import("../routes/seller/products/index.jsx")),
+});
+
+const sellerProductNewRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/products/new",
+  component: lazy(() => import("../routes/seller/products/new.jsx")),
+});
+
+const sellerProductDetailRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/products/$productId",
+  component: lazy(() => import("../routes/seller/products/$productId.jsx")),
+});
+
+const sellerOrdersRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/orders",
+  component: lazy(() => import("../routes/seller/orders.jsx")),
+});
+
+const sellerSettingsRoute = createRoute({
+  getParentRoute: () => sellerLayoutRoute,
+  path: "/settings",
+  component: lazy(() => import("../routes/seller/settings.jsx")),
+});
+
 // Admin: layout (sidebar + kiểm tra role) bọc các trang con qua <Outlet/>
 const adminLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -116,6 +167,18 @@ const adminShopsRoute = createRoute({
   component: lazy(() => import("../routes/admin/shops.jsx")),
 });
 
+const adminOrdersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/orders",
+  component: lazy(() => import("../routes/admin/orders.jsx")),
+});
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/users",
+  component: lazy(() => import("../routes/admin/users.jsx")),
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profile",
@@ -130,20 +193,53 @@ const addressesRoute = createRoute({
   component: lazy(() => import("../routes/addresses.jsx")),
 });
 
+// F15: đơn mua của người mua — /orders?status=SHIPPING&page=1
+const myOrdersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders",
+  validateSearch: myOrdersSearchSchema,
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/orders/index.jsx")),
+});
+
+const myOrderDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders/$orderId",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/orders/$orderId.jsx")),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  oauth2RedirectRoute,
   productsIndexRoute,
   productDetailRoute,
   cartRoute,
   checkoutRoute,
+  checkoutResultRoute,
   shopRoute,
   sellerRegisterRoute,
-  sellerLayoutRoute.addChildren([sellerIndexRoute]),
-  adminLayoutRoute.addChildren([adminIndexRoute, adminCategoriesRoute, adminShopsRoute]),
+  sellerLayoutRoute.addChildren([
+    sellerIndexRoute,
+    sellerProductsRoute,
+    sellerProductNewRoute,
+    sellerProductDetailRoute,
+    sellerOrdersRoute,
+    sellerSettingsRoute,
+  ]),
+  adminLayoutRoute.addChildren([
+    adminIndexRoute,
+    adminCategoriesRoute,
+    adminShopsRoute,
+    adminOrdersRoute,
+    adminUsersRoute,
+  ]),
   profileRoute,
   addressesRoute,
+  myOrdersRoute,
+  myOrderDetailRoute,
 ]);
 
 export const router = createRouter({
