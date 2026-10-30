@@ -5,6 +5,7 @@ import {
   fetchSellerOrderDetail,
   updateSellerOrderStatus,
 } from "../api/seller.api";
+import { ORDERS_KEY } from "./useOrders";
 
 export const SELLER_DASHBOARD_KEY = ["seller", "dashboard"];
 export const SELLER_ORDERS_KEY = ["seller", "orders"];
@@ -46,6 +47,8 @@ export function useUpdateSellerOrderStatus() {
       queryClient.setQueryData(sellerOrderKey(order.id), order);
       queryClient.invalidateQueries({ queryKey: SELLER_ORDERS_KEY });
       queryClient.invalidateQueries({ queryKey: SELLER_DASHBOARD_KEY });
+      // Mọi cache đơn hàng ['orders', ...] (danh sách, số đếm, chi tiết + timeline) đều cũ
+      queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
       // COMPLETED làm tăng sold_count; CANCELLED làm tăng tồn kho
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product"] });

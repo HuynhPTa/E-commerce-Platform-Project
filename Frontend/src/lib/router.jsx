@@ -4,6 +4,7 @@ import RootLayout from "../routes/__root.jsx";
 import { productSearchSchema } from "../schemas/product-search.schema";
 import { shopProductsSearchSchema } from "../schemas/shop.schema";
 import { checkoutResultSearchSchema } from "../schemas/checkout.schema";
+import { myOrdersSearchSchema } from "../schemas/order.schema";
 import { redirect } from "@tanstack/react-router";
 import { hasToken } from "../queries/useMe";
 // Tầng 1B — TanStack Router: tổ chức route + route params có validate.
@@ -192,6 +193,22 @@ const addressesRoute = createRoute({
   component: lazy(() => import("../routes/addresses.jsx")),
 });
 
+// F15: đơn mua của người mua — /orders?status=SHIPPING&page=1
+const myOrdersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders",
+  validateSearch: myOrdersSearchSchema,
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/orders/index.jsx")),
+});
+
+const myOrderDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders/$orderId",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/orders/$orderId.jsx")),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -221,6 +238,8 @@ const routeTree = rootRoute.addChildren([
   ]),
   profileRoute,
   addressesRoute,
+  myOrdersRoute,
+  myOrderDetailRoute,
 ]);
 
 export const router = createRouter({

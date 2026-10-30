@@ -778,3 +778,65 @@ a.cart-item__name:hover { color: var(--primary); }
   .status-breakdown-row { grid-template-columns: 96px minmax(0, 1fr) 30px; }
 }
 
+
+/* ==========================================================================
+   Đơn mua của người mua (F15) + Order Timeline
+   ========================================================================== */
+.my-orders { list-style: none; margin: 0; padding: 0; }
+.my-order { border-top: 1px solid var(--border); }
+.my-order:first-child { border-top: 0; }
+.my-order__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 20px; background: #fafafb; border-bottom: 1px solid #f0f0f3;
+}
+.my-order__body {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px; align-items: center; padding: 14px 20px;
+}
+.my-order__total { display: flex; flex-direction: column; align-items: flex-end; font-size: 13px; }
+.my-order__total strong { color: var(--primary); font-size: 16px; }
+
+.order-timeline {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;
+}
+.order-timeline.is-cancelled { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.order-timeline__step {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 8px; font-size: 13px;
+}
+/* đường nối tới bước kế tiếp */
+.order-timeline__step:not(:last-child)::after {
+  content: ""; position: absolute; top: 17px; left: calc(50% + 22px); right: calc(-50% + 22px);
+  height: 2px; background: var(--border);
+}
+.order-timeline__step.is-done:not(:last-child)::after { background: var(--success); }
+.order-timeline__dot {
+  width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: #f1f1f4; color: #9ca3af; border: 2px solid var(--border);
+}
+.order-timeline__step.is-done .order-timeline__dot { background: var(--success); border-color: var(--success); color: #fff; }
+.order-timeline__step.is-current .order-timeline__dot { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+.is-cancelled .order-timeline__step.is-current .order-timeline__dot { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.order-timeline__label { font-weight: 600; color: var(--text); }
+.order-timeline__step.is-todo .order-timeline__label { color: var(--muted); font-weight: 500; }
+.order-timeline__time { color: var(--muted); font-size: 12px; }
+
+/* Bảng điều khiển người bán: sắp hết hàng */
+.low-stock-list { list-style: none; margin: 0; padding: 6px 20px 14px; }
+.low-stock-list li {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #f0f0f3;
+}
+.low-stock-list li:first-child { border-top: 0; }
+.low-stock-list img, .low-stock-list .order-item__thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+
+@media (max-width: 720px) {
+  .my-order__body { grid-template-columns: 1fr; }
+  .my-order__total { align-items: flex-start; }
+  .order-timeline, .order-timeline.is-cancelled { grid-template-columns: 1fr; gap: 14px; }
+  .order-timeline__step { flex-direction: row; text-align: left; }
+  .order-timeline__step:not(:last-child)::after {
+    top: 36px; left: 17px; right: auto; width: 2px; height: calc(100% - 22px);
+  }
+}

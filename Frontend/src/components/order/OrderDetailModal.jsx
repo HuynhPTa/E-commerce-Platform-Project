@@ -1,6 +1,7 @@
 import { ImageOff, LoaderCircle, MapPin, Phone, Store, User } from "lucide-react";
 import Modal from "../common/Modal";
 import OrderStatusBadge from "./OrderStatusBadge";
+import OrderTimeline from "./OrderTimeline";
 import { PAYMENT_METHOD_LABELS } from "./orderStatus";
 import { errMsg, formatDate } from "../../lib/errors";
 import { formatVnd } from "../../lib/format";
@@ -38,6 +39,12 @@ export default function OrderDetailModal({
             <div><dt>Cập nhật gần nhất</dt><dd>{formatDate(order.updatedAt)}</dd></div>
             <div><dt>Mã phiên checkout</dt><dd>#{order.checkoutSessionId}</dd></div>
           </dl>
+
+          {order.statusHistory && (
+            <div style={{ marginBottom: 18 }}>
+              <OrderTimeline status={order.status} history={order.statusHistory} />
+            </div>
+          )}
 
           <h3>Địa chỉ nhận hàng</h3>
           <div className="stack" style={{ gap: 6, marginBottom: 16 }}>

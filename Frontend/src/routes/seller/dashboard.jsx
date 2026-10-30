@@ -1,8 +1,8 @@
 // File này nằm trong "seller" bundle riêng (lazy import ở router.jsx) — buyer thường không tải về.
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowRight, CalendarDays, CircleCheck, ClipboardList, Clock, ExternalLink, Inbox,
-  LoaderCircle, MapPin, Package, Phone, Store, TriangleAlert, Wallet,
+  ArrowRight, CalendarDays, CircleCheck, ClipboardList, Clock, ExternalLink, ImageOff, Inbox,
+  LoaderCircle, MapPin, Package, PackageOpen, Phone, Store, TriangleAlert, Wallet,
 } from "lucide-react";
 import { useSellerDashboard } from "../../queries/useSeller";
 import { useMyShop } from "../../queries/useShops";
@@ -119,6 +119,71 @@ export default function SellerDashboard() {
           <div className="card-body">
             <StatusBreakdown counts={data.ordersByStatus} total={data.totalOrders} />
           </div>
+        </section>
+      </div>
+
+      <div className="dashboard-columns" style={{ marginTop: 20 }}>
+        <section className="card">
+          <div className="card-header">
+            <h3 className="row"><PackageOpen size={18} /> Đơn cần đóng gói <span className="badge badge-info">{data.toPackOrders}</span></h3>
+            <Link to="/seller/orders" className="btn btn-sm btn-outline">Xử lý đơn <ArrowRight size={14} /></Link>
+          </div>
+          {data.ordersToPack?.length ? (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr><th>Mã đơn</th><th>Người mua</th><th>Số món</th><th>Tổng</th><th>Ngày đặt</th></tr>
+                </thead>
+                <tbody>
+                  {data.ordersToPack.map((order) => (
+                    <tr key={order.id}>
+                      <td><strong>#{order.id}</strong></td>
+                      <td>{order.buyerName}</td>
+                      <td>{order.itemCount}</td>
+                      <td>{formatVnd(order.totalMinor)}</td>
+                      <td>{formatDate(order.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {data.toPackOrders > data.ordersToPack.length && (
+                <div className="cell-sub" style={{ padding: "10px 14px" }}>
+                  Còn {data.toPackOrders - data.ordersToPack.length} đơn khác, xem ở trang Đơn hàng (tab “Đã xác nhận”).
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="center-box"><CircleCheck size={36} /> Không có đơn nào đang chờ đóng gói.</div>
+          )}
+        </section>
+
+        <section className="card">
+          <div className="card-header">
+            <h3>Sắp hết hàng</h3>
+            <span className="cell-sub">Tồn kho ≤ {data.lowStockThreshold} · {data.lowStockCount} biến thể</span>
+          </div>
+          {data.lowStockItems?.length ? (
+            <ul className="low-stock-list">
+              {data.lowStockItems.map((item) => (
+                <li key={item.variantId}>
+                  {item.thumbnailUrl
+                    ? <img src={assetUrl(item.thumbnailUrl)} alt="" onError={onImageError} />
+                    : <span className="order-item__thumb"><ImageOff size={16} /></span>}
+                  <div>
+                    <Link to="/seller/products/$productId" params={{ productId: String(item.productId) }}>{item.productName}</Link>
+                    <div className="cell-sub">
+                      {Object.values(item.attributes ?? {}).join(" / ") || item.sku || "Mặc định"}
+                    </div>
+                  </div>
+                  <span className={`badge ${item.stockQuantity === 0 ? "badge-danger" : "badge-warning"}`}>
+                    {item.stockQuantity === 0 ? "Hết hàng" : `Còn ${item.stockQuantity}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="center-box"><Package size={36} /> Tất cả sản phẩm đều còn đủ hàng.</div>
+          )}
         </section>
       </div>
 

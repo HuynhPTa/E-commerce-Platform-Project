@@ -8,4 +8,9 @@ public record SellerDashboardResponse(long productCount,
                                       long completedOrders, long cancelledOrders,
                                       long revenueMinor, long todayOrders, long todayRevenueMinor,
                                       Map<String, Long> ordersByStatus,
-                                      List<OrderSummaryResponse> recentOrders) {}
+                                      List<OrderSummaryResponse> recentOrders,
+                                      // Đơn đã xác nhận, đang chờ đóng gói/giao (cũ nhất trước)
+                                      long toPackOrders, List<OrderSummaryResponse> ordersToPack,
+                                      // Biến thể còn ít hàng (stock <= lowStockThreshold)
+                                      int lowStockThreshold, long lowStockCount,
+                                      List<LowStockItemResponse> lowStockItems) {}

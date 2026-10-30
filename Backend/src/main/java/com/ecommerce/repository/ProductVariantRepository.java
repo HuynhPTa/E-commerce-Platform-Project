@@ -2,6 +2,7 @@ package com.ecommerce.repository;
 
 import com.ecommerce.entity.ProductVariant;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -17,6 +18,25 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from ProductVariant v join fetch v.product where v.id = :id")
     Optional<ProductVariant> findByIdForUpdate(@Param("id") Integer id);
+
+    // Bảng điều khiển người bán: biến thể sắp hết hàng của các sản phẩm đang bán
+    @EntityGraph(attributePaths = "product")
+    @Query("""
+            select v from ProductVariant v
+            where v.product.shopId = :shopId and upper(v.product.status) = 'ACTIVE'
+              and v.stockQuantity <= :threshold
+            order by v.stockQuantity asc, v.id asc
+            """)
+    List<ProductVariant> findLowStock(@Param("shopId") String shopId,
+                                      @Param("threshold") int threshold,
+                                      Pageable pageable);
+
+    @Query("""
+            select count(v) from ProductVariant v
+            where v.product.shopId = :shopId and upper(v.product.status) = 'ACTIVE'
+              and v.stockQuantity <= :threshold
+            """)
+    long countLowStock(@Param("shopId") String shopId, @Param("threshold") int threshold);
 
     List<ProductVariant> findAllByProductIdOrderByIdAsc(Integer productId);
 

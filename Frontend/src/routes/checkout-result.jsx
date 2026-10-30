@@ -128,7 +128,7 @@ export default function CheckoutResultPage() {
 
       <div className="row checkout-result__actions">
         <Link to="/products" className="btn btn-primary">Tiếp tục mua sắm</Link>
-        <Link to="/cart" className="btn">Về giỏ hàng</Link>
+        <Link to="/orders" className="btn">Xem đơn mua</Link>
       </div>
     </div>
   )

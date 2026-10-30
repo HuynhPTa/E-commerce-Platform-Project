@@ -2,6 +2,7 @@ package com.ecommerce.service;
 
 import com.ecommerce.dto.response.OrderDetailResponse;
 import com.ecommerce.dto.response.OrderItemResponse;
+import com.ecommerce.dto.response.OrderStatusEventResponse;
 import com.ecommerce.dto.response.OrderSummaryResponse;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
@@ -10,6 +11,7 @@ import com.ecommerce.entity.ProductVariant;
 import com.ecommerce.entity.Shop;
 import com.ecommerce.entity.User;
 import com.ecommerce.repository.OrderItemRepository;
+import com.ecommerce.repository.OrderStatusHistoryRepository;
 import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.ShopRepository;
 import com.ecommerce.util.MediaUrlUtil;
@@ -23,7 +25,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// Chuyển Order -> DTO dùng chung cho Admin và Kênh người bán.
+// Chuyển Order -> DTO dùng chung cho Admin, Kênh người bán và người mua.
 // Gom query theo lô để danh sách không bị N+1 khi open-in-view = false.
 @Component
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class OrderResponseMapper {
     private final ShopRepository shopRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductVariantRepository variantRepository;
+    private final OrderStatusHistoryRepository statusHistoryRepository;
 
     public List<OrderSummaryResponse> toSummaries(List<Order> orders) {
         if (orders.isEmpty()) {
@@ -66,13 +69,17 @@ public class OrderResponseMapper {
         String shopName = shopRepository.findById(order.getShopId())
                 .map(Shop::getName).orElse(null);
         User buyer = order.getBuyer();
+        List<OrderStatusEventResponse> history = statusHistoryRepository
+                .findByOrder_IdOrderByChangedAtAscIdAsc(order.getId()).stream()
+                .map(h -> new OrderStatusEventResponse(h.getStatus().name(), h.getChangedAt()))
+                .toList();
 
         return new OrderDetailResponse(order.getId(), order.getCheckoutSession().getId(),
                 order.getShopId(), shopName, buyer.getId(), fullName(buyer), buyer.getEmail(),
                 order.getStatus().name(), order.getCheckoutSession().getPaymentMethod().name(),
                 order.getShippingAddressSnapshot(), order.getSubtotalMinor(),
                 order.getShippingFeeMinor(), order.getTotalMinor(),
-                order.getCreatedAt(), order.getUpdatedAt(), items);
+                order.getCreatedAt(), order.getUpdatedAt(), items, history);
     }
 
     private OrderSummaryResponse toSummary(Order order, String shopName, int itemCount) {

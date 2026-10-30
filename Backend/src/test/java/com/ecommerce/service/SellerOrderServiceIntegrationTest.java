@@ -53,6 +53,8 @@ class SellerOrderServiceIntegrationTest {
     @Autowired
     private SellerOrderService sellerOrderService;
     @Autowired
+    private BuyerOrderService buyerOrderService;
+    @Autowired
     private CheckoutService checkoutService;
     @Autowired
     private UserRepository userRepository;
@@ -147,6 +149,61 @@ class SellerOrderServiceIntegrationTest {
         assertThatThrownBy(() -> sellerOrderService.detail("other-seller@test.local", fixture.orderId()))
                 .isInstanceOfSatisfying(AppException.class,
                         ex -> assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.ORDER_NOT_EXISTED));
+    }
+
+    @Test
+    @DisplayName("Người mua xem lịch sử đơn và timeline ghi đủ các mốc trạng thái")
+    void nguoiMuaXemTimeline() {
+        Fixture fixture = createOrder();
+        update(fixture.orderId(), OrderStatus.CONFIRMED);
+        update(fixture.orderId(), OrderStatus.SHIPPING);
+
+        PageResponse<OrderSummaryResponse> mine = buyerOrderService.list(BUYER_EMAIL, null, 1, 10);
+        assertThat(mine.items()).singleElement()
+                .satisfies(order -> assertThat(order.id()).isEqualTo(fixture.orderId()));
+        assertThat(buyerOrderService.list(BUYER_EMAIL, OrderStatus.COMPLETED, 1, 10).totalItems()).isZero();
+        assertThat(buyerOrderService.statusCounts(BUYER_EMAIL).get("SHIPPING")).isEqualTo(1);
+
+        OrderDetailResponse detail = buyerOrderService.detail(BUYER_EMAIL, fixture.orderId());
+        assertThat(detail.status()).isEqualTo("SHIPPING");
+        assertThat(detail.statusHistory())
+                .extracting(event -> event.status())
+                .containsExactly("PENDING", "CONFIRMED", "SHIPPING");
+        assertThat(detail.statusHistory()).allSatisfy(event -> assertThat(event.changedAt()).isNotNull());
+    }
+
+    @Test
+    @DisplayName("Người mua khác không xem được đơn")
+    void nguoiMuaKhacKhongXemDuoc() {
+        Fixture fixture = createOrder();
+        createUser("other-buyer@test.local");
+
+        assertThatThrownBy(() -> buyerOrderService.detail("other-buyer@test.local", fixture.orderId()))
+                .isInstanceOfSatisfying(AppException.class,
+                        ex -> assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.ORDER_NOT_EXISTED));
+        assertThat(buyerOrderService.list("other-buyer@test.local", null, 1, 10).totalItems()).isZero();
+    }
+
+    @Test
+    @DisplayName("Dashboard: đơn cần đóng gói (CONFIRMED) và biến thể sắp hết hàng")
+    void dashboardDonCanDongGoiVaTonKho() {
+        Fixture fixture = createOrder(); // tồn kho còn 5 - 2 = 3, dưới ngưỡng 5
+        update(fixture.orderId(), OrderStatus.CONFIRMED);
+
+        SellerDashboardResponse dashboard = sellerOrderService.dashboard(SELLER_EMAIL);
+        assertThat(dashboard.toPackOrders()).isEqualTo(1);
+        assertThat(dashboard.ordersToPack()).singleElement()
+                .satisfies(order -> assertThat(order.id()).isEqualTo(fixture.orderId()));
+        assertThat(dashboard.lowStockThreshold()).isEqualTo(SellerOrderService.LOW_STOCK_THRESHOLD);
+        assertThat(dashboard.lowStockCount()).isEqualTo(1);
+        assertThat(dashboard.lowStockItems()).singleElement().satisfies(item -> {
+            assertThat(item.variantId()).isEqualTo(fixture.variantId());
+            assertThat(item.stockQuantity()).isEqualTo(3);
+            assertThat(item.productName()).isEqualTo("Sản phẩm test");
+        });
+
+        update(fixture.orderId(), OrderStatus.SHIPPING);
+        assertThat(sellerOrderService.dashboard(SELLER_EMAIL).ordersToPack()).isEmpty();
     }
 
     // ------------------------------------------------------------------ helpers

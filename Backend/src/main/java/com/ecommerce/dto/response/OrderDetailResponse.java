@@ -10,4 +10,5 @@ public record OrderDetailResponse(int id, int checkoutSessionId, int shopId, Str
                                   Map<String, Object> shippingAddress,
                                   int subtotalMinor, int shippingFeeMinor, int totalMinor,
                                   LocalDateTime createdAt, LocalDateTime updatedAt,
-                                  List<OrderItemResponse> items) {}
+                                  List<OrderItemResponse> items,
+                                  List<OrderStatusEventResponse> statusHistory) {}

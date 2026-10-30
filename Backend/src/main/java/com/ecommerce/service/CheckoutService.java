@@ -9,6 +9,7 @@ import com.ecommerce.repository.CheckoutCartRepository;
 import com.ecommerce.repository.CheckoutCartRepository.CartLine;
 import com.ecommerce.repository.CheckoutSessionRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.OrderStatusHistoryRepository;
 import com.ecommerce.repository.ShopRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +28,7 @@ public class CheckoutService {
     private final CheckoutCartRepository cartRepository;
     private final CheckoutSessionRepository sessionRepository;
     private final OrderRepository orderRepository;
+    private final OrderStatusHistoryRepository statusHistoryRepository;
     private final ShopRepository shopRepository;
     private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
@@ -105,6 +107,8 @@ public class CheckoutService {
             order.setShippingFeeMinor(0);
             order.setTotalMinor(subtotal);
             orderRepository.save(order);
+            // Mốc đầu tiên của Order Timeline
+            statusHistoryRepository.save(new OrderStatusHistory(order, OrderStatus.PENDING));
             orders.add(order);
         }
 

@@ -1,6 +1,7 @@
 package com.ecommerce.service;
 
 import com.ecommerce.dto.request.OrderStatusRequest;
+import com.ecommerce.dto.response.LowStockItemResponse;
 import com.ecommerce.dto.response.OrderDetailResponse;
 import com.ecommerce.dto.response.OrderSummaryResponse;
 import com.ecommerce.dto.response.PageResponse;
@@ -8,16 +9,20 @@ import com.ecommerce.dto.response.SellerDashboardResponse;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.entity.OrderStatus;
+import com.ecommerce.entity.OrderStatusHistory;
+import com.ecommerce.entity.Product;
 import com.ecommerce.entity.Shop;
 import com.ecommerce.entity.ShopStatus;
 import com.ecommerce.entity.User;
 import com.ecommerce.exception.AppException;
 import com.ecommerce.exception.ErrorCode;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.OrderStatusHistoryRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.ShopRepository;
 import com.ecommerce.repository.UserRepository;
+import com.ecommerce.util.MediaUrlUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,12 +40,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SellerOrderService {
     private static final int MAX_PAGE_SIZE = 50;
+    // Biến thể còn từ ngần này trở xuống được coi là sắp hết hàng
+    static final int LOW_STOCK_THRESHOLD = 5;
+    private static final int LOW_STOCK_LIMIT = 8;
 
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
     private final OrderRepository orderRepository;
+    private final OrderStatusHistoryRepository statusHistoryRepository;
     private final OrderResponseMapper orderResponseMapper;
 
     @Transactional(readOnly = true)
@@ -65,9 +74,26 @@ public class SellerOrderService {
         List<OrderSummaryResponse> recentOrders = orderResponseMapper
                 .toSummaries(orderRepository.findTop8ByShopIdOrderByCreatedAtDesc(shopId));
 
+        long toPackOrders = ordersByStatus.getOrDefault(OrderStatus.CONFIRMED.name(), 0L);
+        List<OrderSummaryResponse> ordersToPack = orderResponseMapper.toSummaries(
+                orderRepository.findTop8ByShopIdAndStatusOrderByCreatedAtAsc(shopId, OrderStatus.CONFIRMED));
+
+        String shopKey = String.valueOf(shopId);
+        long lowStockCount = variantRepository.countLowStock(shopKey, LOW_STOCK_THRESHOLD);
+        List<LowStockItemResponse> lowStockItems = variantRepository
+                .findLowStock(shopKey, LOW_STOCK_THRESHOLD, PageRequest.of(0, LOW_STOCK_LIMIT)).stream()
+                .map(v -> {
+                    Product p = v.getProduct();
+                    String thumb = v.getImageUrl() != null ? v.getImageUrl() : p.getThumbnailUrl();
+                    return new LowStockItemResponse(p.getId(), p.getName(), v.getId(), v.getSku(),
+                            v.getAttributes(), v.getStockQuantity(), MediaUrlUtil.toAbsolute(thumb));
+                })
+                .toList();
+
         return new SellerDashboardResponse(productCount, totalOrders, pendingOrders,
                 completedOrders, cancelledOrders, revenueMinor, todayOrders, todayRevenueMinor,
-                ordersByStatus, recentOrders);
+                ordersByStatus, recentOrders, toPackOrders, ordersToPack,
+                LOW_STOCK_THRESHOLD, lowStockCount, lowStockItems);
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +136,7 @@ public class SellerOrderService {
 
         order.setStatus(next);
         orderRepository.save(order);
+        statusHistoryRepository.save(new OrderStatusHistory(order, next));
         return orderResponseMapper.toDetail(order);
     }
 

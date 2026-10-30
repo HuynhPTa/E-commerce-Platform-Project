@@ -92,6 +92,25 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     long countByShopIdAndCreatedAtGreaterThanEqual(int shopId, LocalDateTime from);
 
+    // Đơn cần đóng gói: đã xác nhận, xử lý đơn cũ trước
+    @EntityGraph(attributePaths = {"buyer", "checkoutSession"})
+    List<Order> findTop8ByShopIdAndStatusOrderByCreatedAtAsc(int shopId, OrderStatus status);
+
+    // ---------------------------------------------------------------- Buyer
+
+    @EntityGraph(attributePaths = {"buyer", "checkoutSession"})
+    @Query("""
+            select o from Order o
+            where o.buyer.id = :buyerId
+              and (:status is null or o.status = :status)
+            """)
+    Page<Order> buyerSearch(@Param("buyerId") int buyerId,
+                            @Param("status") OrderStatus status,
+                            Pageable pageable);
+
+    @Query("select o.status, count(o) from Order o where o.buyer.id = :buyerId group by o.status")
+    List<Object[]> countGroupByStatusForBuyer(@Param("buyerId") int buyerId);
+
     // ---------------------------------------------------------------- Chi tiết
 
     // items là collection nên chỉ dùng cho 1 đơn, không dùng cho phân trang.
