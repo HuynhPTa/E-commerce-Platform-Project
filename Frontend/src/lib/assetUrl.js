@@ -1,35 +1,72 @@
-// Ảnh upload được lưu trong DB dưới dạng đường dẫn tương đối (/uploads/...).
-// Trình duyệt sẽ tải nhầm từ origin của frontend (Vite) nếu không trỏ về backend.
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
-export const API_ORIGIN = (() => {
+// Biến này lưu địa chỉ máy chủ backend, ưu tiên giá trị trong biến môi trường.
+let DIA_CHI_MAY_CHU_BACKEND = "http://localhost:8080/api";
+const DIA_CHI_TU_BIEN_MOI_TRUONG = import.meta.env.VITE_API_BASE_URL;
+
+// Nếu biến môi trường có giá trị hợp lệ thì dùng giá trị đó.
+if (DIA_CHI_TU_BIEN_MOI_TRUONG !== undefined) {
+  if (DIA_CHI_TU_BIEN_MOI_TRUONG !== null) {
+    if (DIA_CHI_TU_BIEN_MOI_TRUONG !== "") {
+      DIA_CHI_MAY_CHU_BACKEND = DIA_CHI_TU_BIEN_MOI_TRUONG;
+    }
+  }
+}
+
+// Hàm này lấy phần nguồn của địa chỉ backend,
+// dùng để ghép với các đường dẫn ảnh tương đối.
+// Hàm trả về chuỗi nguồn hoặc chuỗi rỗng nếu địa chỉ không hợp lệ.
+function layNguonMayChuBackend() {
   try {
-    return new URL(API_BASE).origin;
+    const diaChiDayDu = new URL(
+      DIA_CHI_MAY_CHU_BACKEND,
+      window.location.origin,
+    );
+    return diaChiDayDu.origin;
   } catch {
     return "";
   }
-})();
-
-export function assetUrl(url) {
-  if (!url) return null;
-  if (/^(https?:)?\/\//i.test(url) || url.startsWith("data:") || url.startsWith("blob:")) {
-    return url;
-  }
-  return url.startsWith("/") ? `${API_ORIGIN}${url}` : url;
 }
 
-// Ảnh thay thế khi file upload không còn trên máy chủ (tránh icon ảnh vỡ của trình duyệt).
-export const FALLBACK_IMAGE =
-  "data:image/svg+xml;charset=utf-8," +
-  encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">' +
-      '<rect width="160" height="160" fill="#f2f2f4"/>' +
-      '<path d="M48 58h64a6 6 0 0 1 6 6v38a6 6 0 0 1-6 6H48a6 6 0 0 1-6-6V64a6 6 0 0 1 6-6Z" fill="none" stroke="#c4c4cc" stroke-width="6"/>' +
-      '<circle cx="66" cy="76" r="7" fill="#c4c4cc"/>' +
-      '<path d="m46 104 22-22 14 14 10-10 24 24" fill="none" stroke="#c4c4cc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' +
-    "</svg>",
-  );
+// Biến này lưu nguồn máy chủ backend đã được tách sẵn.
+const NGUON_MAY_CHU_BACKEND = layNguonMayChuBackend();
 
-export function onImageError(event) {
-  event.currentTarget.onerror = null;
-  event.currentTarget.src = FALLBACK_IMAGE;
+// Hàm này nhận vào đường dẫn tài nguyên,
+// trả về đường dẫn đầy đủ để trình duyệt tải đúng máy chủ.
+export function taoDuongDanTaiNguyen(diaChiTaiNguyen) {
+  // Nếu không có đường dẫn thì trả về null.
+  if (diaChiTaiNguyen === undefined) {
+    return null;
+  }
+
+  if (diaChiTaiNguyen === null) {
+    return null;
+  }
+
+  if (diaChiTaiNguyen === "") {
+    return null;
+  }
+
+  // Biến này cho biết đường dẫn đã là địa chỉ tuyệt đối hay chưa.
+  const laDiaChiTuyetDoi = /^(https?:)?\/\//i.test(diaChiTaiNguyen);
+
+  // Nếu đã là địa chỉ tuyệt đối thì giữ nguyên.
+  if (laDiaChiTuyetDoi === true) {
+    return diaChiTaiNguyen;
+  }
+
+  // Nếu là dữ liệu ảnh trực tiếp thì giữ nguyên.
+  if (diaChiTaiNguyen.startsWith("data:") === true) {
+    return diaChiTaiNguyen;
+  }
+
+  // Nếu là dữ liệu tạm trong trình duyệt thì giữ nguyên.
+  if (diaChiTaiNguyen.startsWith("blob:") === true) {
+    return diaChiTaiNguyen;
+  }
+
+  // Nếu là đường dẫn tương đối bắt đầu bằng dấu gạch chéo thì ghép nguồn backend.
+  if (diaChiTaiNguyen.startsWith("/") === true) {
+    return NGUON_MAY_CHU_BACKEND + diaChiTaiNguyen;
+  }
+
+  return diaChiTaiNguyen;
 }

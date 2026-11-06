@@ -6,9 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "dev:storefront": "vite --config storefront/vite.config.js",
-    "build:storefront": "vite build --config storefront/vite.config.js",
-    "preview:storefront": "vite preview --config storefront/vite.config.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

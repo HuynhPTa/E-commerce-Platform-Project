@@ -60,7 +60,7 @@ Quy tắc:
 
 ## 4.1. Storefront (người mua)
 
-Ứng dụng riêng tại `Frontend/storefront`, dev `http://localhost:5173`.
+Ứng dụng tại `Frontend`, dev `http://localhost:5173`.
 
 | Route | Màn hình | Trạng thái |
 |---|---|---|
@@ -152,7 +152,7 @@ Ký hiệu: **Đã có**, **Đã có (cần credential)**, **Chưa triển khai 
 | F34 | Seed dữ liệu | Đã có | Giữ ID cố định, idempotent; không tạo marketplace mới |
 | F35 | Dữ liệu cũ | Đã có | Không xoá shop/sản phẩm/đơn cũ; chỉ ẩn khỏi UI |
 | F36 | Upload/static | Đã có | `/uploads/**`; giới hạn loại file và dung lượng |
-| F37 | Build/test | Đã có | Backend 65 test; lint/build frontend và storefront |
+| F37 | Build/test | Đã có | Backend 65 test; lint/build frontend |
 | F38 | Phân trang/hiệu năng | Đã có | Mặc định 12; không N+1 mới |
 | F39 | Bảo mật | Đã có | JWT, BCrypt, validate input, kiểm tra quyền sở hữu |
 
@@ -315,7 +315,7 @@ Các endpoint dưới `/api/seller/**` và `/api/admin/shops/**` vẫn tồn t�
 | Backend `mvn test` | **65/65 pass**: gồm checkout idempotency/hết hạn, huỷ đơn/sửa nhận hàng/COD, callback muộn và `REFUND_REQUIRED`, đăng ký/JWT thu hồi, doanh thu theo `completedAt`, quản trị sản phẩm và đơn hàng |
 | Frontend `npm run lint` | Pass |
 | Frontend `npm run build` | Pass |
-| Storefront `npm run build:storefront` | Pass (chỉ còn cảnh báo chunk > 500 kB có sẵn) |
+| Frontend `npm run build` | Pass (chỉ còn cảnh báo chunk > 500 kB có sẵn) |
 | VNPay/MoMo end-to-end | **Chưa kiểm thử** — thiếu credential |
 | Google/Facebook OAuth2 end-to-end | **Chưa kiểm thử** — thiếu credential |
 | Kiểm thử trình duyệt giỏ hàng | **Đã kiểm thử**: mở giỏ không tự chọn tất cả; bấm nhanh nút tăng số lượng hai lần chỉ gửi một cập nhật và số lượng tăng đúng một đơn vị. |

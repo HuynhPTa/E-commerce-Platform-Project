@@ -1,7 +1,6 @@
 # Frontend
 Frontend/node_modules/
 Frontend/dist/
-Frontend/dist-storefront/
 Frontend/.env
 
 # Backend

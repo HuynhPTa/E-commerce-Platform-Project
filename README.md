@@ -1,8 +1,6 @@
-hi
 # 🛒 E-Commerce Platform Project
 
-Dự án website thương mại điện tử Fullstack xây dựng bằng **Spring Boot 3** (Backend) và **React + TanStack** (Frontend), sử dụng **MySQL (Docker)** làm hệ quản trị cơ sở dữ liệu.
-2
+Dự án website thương mại điện tử Fullstack xây dựng bằng **Spring Boot 3** (Backend) và **React + Vite** (Frontend), sử dụng **MySQL (Docker)** làm hệ quản trị cơ sở dữ liệu.
 ---
 
 ## 🛠️ Yêu cầu môi trường (Prerequisites)
@@ -20,6 +18,25 @@ Mở terminal tại thư mục gốc dự án và chạy:
 ```bash
 docker compose up -d mysql-db
 ```
+
+### 2. Chạy Backend
+
+```bash
+cd Backend
+mvn spring-boot:run
+```
+
+Backend chạy ở `http://localhost:8080`.
+
+### 3. Chạy Frontend
+
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+Frontend chạy ở `http://localhost:5173`.
 
 ---
 

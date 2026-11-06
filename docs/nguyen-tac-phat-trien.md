@@ -92,7 +92,7 @@ Quy tắc bắt buộc:
 
 ## 7. Quy tắc code storefront
 
-Áp dụng cho mã mới hoặc mã sửa trong `Frontend/storefront`. Mục tiêu là code dài nhưng đọc được, không tối ưu ký tự.
+Áp dụng cho mã mới hoặc mã sửa trong `Frontend/src`. Mục tiêu là code dài nhưng đọc được, không tối ưu ký tự.
 
 1. **Tên và chú thích bằng tiếng Việt, viết đầy đủ, không viết tắt**: `danhSachSanPham`, `capNhatTuKhoaTimKiem`, `dangTaiDanhSach`. Tên file, route, hàm API và trường JSON vẫn dùng tiếng Anh.
 2. **Không dùng ternary** `? :`. Dùng `if/else` hoặc gán giá trị mặc định trước.
@@ -137,7 +137,7 @@ Quy tắc bắt buộc:
 
 ## 10. Kiểm chứng và trung thực
 
-1. Chạy kiểm tra hẹp nhất và liên quan nhất sau mỗi thay đổi: `mvn test`, `npm run lint`, `npm run build`, `npm run build:storefront`.
+1. Chạy kiểm tra hẹp nhất và liên quan nhất sau mỗi thay đổi: `mvn test`, `npm run lint`, `npm run build`.
 2. Kiểm thử trình duyệt cho luồng chính; ghi rõ đã thao tác gì, dữ liệu nào bị thay đổi.
 3. Không nói “đã chạy được” nếu chưa có log/kết quả. Nếu bị chặn bởi credential hoặc môi trường, nói rõ lý do.
 4. Khi sửa lỗi, ưu tiên tái hiện bằng test hoặc bước kiểm thử cụ thể trước khi sửa.

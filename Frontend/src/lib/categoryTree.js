@@ -1,28 +1,56 @@
-// Hàm thuần xử lý cây danh mục (không gọi API, không dùng React)
-
-// Đường đi từ gốc tới danh mục có slug cho trước: [gốc, ..., danh mục đó]; [] nếu không thấy
-export function findCategoryPath(tree, slug) {
-  if (!slug || !tree) return [];
-  for (const node of tree) {
-    if (node.slug === slug) return [node];
-    const sub = findCategoryPath(node.children, slug);
-    if (sub.length) return [node, ...sub];
+// Hàm này nhận vào danh sách danh mục và mã danh mục cần tìm,
+// trả về đường dẫn từ danh mục gốc tới danh mục đó.
+export function timDuongDanDanhMuc(danhSachDanhMuc, maDanhMuc) {
+  // Nếu danh sách danh mục không hợp lệ thì trả về mảng rỗng.
+  if (danhSachDanhMuc === undefined) {
+    return [];
   }
-  return [];
-}
 
-// Tập id của một danh mục và toàn bộ con cháu (dùng để loại khỏi ô chọn "danh mục cha")
-export function descendantIds(flat, id) {
-  const ids = new Set([id]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const c of flat) {
-      if (c.parentId != null && ids.has(c.parentId) && !ids.has(c.id)) {
-        ids.add(c.id);
-        changed = true;
+  if (danhSachDanhMuc === null) {
+    return [];
+  }
+
+  // Biến này lưu mã danh mục đã chuyển sang dạng số.
+  const maDanhMucCanTim = Number(maDanhMuc);
+
+  // Nếu mã danh mục không phải số nguyên thì trả về mảng rỗng.
+  if (Number.isInteger(maDanhMucCanTim) === false) {
+    return [];
+  }
+
+  for (const danhMuc of danhSachDanhMuc) {
+    // Nếu danh mục hiện tại chính là danh mục cần tìm thì trả về một mảng chứa nó.
+    if (danhMuc.id === maDanhMucCanTim) {
+      return [danhMuc];
+    }
+
+    // Biến này lưu danh sách danh mục con của danh mục hiện tại.
+    let danhSachDanhMucCon = [];
+
+    // Nếu danh mục có danh sách con thì mới đọc tiếp.
+    if (danhMuc.children !== undefined) {
+      if (danhMuc.children !== null) {
+        danhSachDanhMucCon = danhMuc.children;
       }
     }
+
+    // Biến này lưu đường dẫn tìm được trong nhánh danh mục con.
+    const duongDanTrongNhanhCon = timDuongDanDanhMuc(
+      danhSachDanhMucCon,
+      maDanhMucCanTim,
+    );
+
+    // Nếu tìm thấy trong nhánh con thì ghép danh mục hiện tại vào đầu đường dẫn.
+    if (duongDanTrongNhanhCon.length > 0) {
+      const duongDanDayDu = [danhMuc];
+
+      for (const danhMucCon of duongDanTrongNhanhCon) {
+        duongDanDayDu.push(danhMucCon);
+      }
+
+      return duongDanDayDu;
+    }
   }
-  return ids;
+
+  return [];
 }
