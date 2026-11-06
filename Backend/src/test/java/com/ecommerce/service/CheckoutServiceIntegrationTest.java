@@ -3,7 +3,11 @@ package com.ecommerce.service;
 import com.ecommerce.dto.request.CheckoutRequest;
 import com.ecommerce.dto.response.CheckoutResponse;
 import com.ecommerce.entity.CartItem;
+import com.ecommerce.entity.CheckoutStatus;
+import com.ecommerce.entity.OrderStatus;
+import com.ecommerce.entity.Payment;
 import com.ecommerce.entity.PaymentMethod;
+import com.ecommerce.entity.PaymentStatus;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.ProductVariant;
 import com.ecommerce.entity.Shop;
@@ -14,6 +18,7 @@ import com.ecommerce.exception.ErrorCode;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.CheckoutSessionRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.PaymentRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.ShopRepository;
@@ -25,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +58,8 @@ class CheckoutServiceIntegrationTest {
     @Autowired
     private CheckoutService checkoutService;
     @Autowired
+    private OrderLifecycleService orderLifecycleService;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private ShopRepository shopRepository;
@@ -65,10 +73,13 @@ class CheckoutServiceIntegrationTest {
     private CheckoutSessionRepository sessionRepository;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @BeforeEach
     void cleanDatabase() {
-        // Xóa theo thứ tự khóa ngoại: order_items (cascade từ orders) -> orders -> sessions
+        // Xóa theo thứ tự khóa ngoại: order_items (cascade từ orders) -> orders -> payments -> sessions
+        paymentRepository.deleteAll();
         orderRepository.deleteAll();
         sessionRepository.deleteAll();
         cartRepository.deleteAll();
@@ -166,6 +177,72 @@ class CheckoutServiceIntegrationTest {
                 .isEqualTo(4);
         assertThat(variantRepository.findById(variantB.getId()).orElseThrow().getStockQuantity())
                 .isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("Gửi lại cùng khoá chống trùng: trả phiên cũ, không trừ kho hai lần")
+    void guiLaiCungKhoaChongTrung() {
+        User buyer = createUser("buyer-idempotent@test.local");
+        Shop shop = createShop(createUser("seller-idempotent@test.local"),
+                ShopStatus.APPROVED, "Shop Idempotent");
+        ProductVariant variant = createVariant(createProduct(shop, "ACTIVE", "Sản phẩm"),
+                250_000L, 5, "SKU-IDEMPOTENT");
+        CartItem cartItem = addToCart(buyer, variant, 2);
+
+        CheckoutRequest request = request(PaymentMethod.VNPAY, cartItem.getId());
+        request.setIdempotencyKey("  idem-key-1  ");
+
+        CheckoutResponse first = checkoutService.checkout(buyer.getId(), request);
+        CheckoutResponse second = checkoutService.checkout(buyer.getId(), request);
+
+        assertThat(second.getCheckoutSessionId()).isEqualTo(first.getCheckoutSessionId());
+        assertThat(second.getOrders()).singleElement().satisfies(order ->
+                assertThat(order.getOrderId())
+                        .isEqualTo(first.getOrders().get(0).getOrderId()));
+        assertThat(sessionRepository.count()).isEqualTo(1);
+        assertThat(orderRepository.count()).isEqualTo(1);
+        assertThat(variantRepository.findById(variant.getId()).orElseThrow().getStockQuantity())
+                .as("kho chỉ bị trừ một lần cho một khoá")
+                .isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Phiên online quá hạn: huỷ đơn, hoàn kho, đưa tổng và giao dịch về 0")
+    void phienQuaHanBiHuyVaHoanKho() {
+        User buyer = createUser("buyer-expiry@test.local");
+        Shop shop = createShop(createUser("seller-expiry@test.local"),
+                ShopStatus.APPROVED, "Shop Expiry");
+        ProductVariant variant = createVariant(createProduct(shop, "ACTIVE", "Sản phẩm"),
+                250_000L, 5, "SKU-EXPIRY");
+        CartItem cartItem = addToCart(buyer, variant, 2);
+
+        CheckoutResponse response = checkoutService.checkout(
+                buyer.getId(), request(PaymentMethod.VNPAY, cartItem.getId()));
+        int sessionId = response.getCheckoutSessionId();
+
+        Payment payment = new Payment();
+        payment.setCheckoutSession(sessionRepository.findById(sessionId).orElseThrow());
+        payment.setProvider(PaymentMethod.VNPAY);
+        payment.setAmountMinor(response.getTotalAmountMinor());
+        payment.setStatus(PaymentStatus.PENDING);
+        paymentRepository.save(payment);
+
+        // Cutoff ở tương lai để phiên vừa tạo cũng được coi là quá hạn trong test.
+        orderLifecycleService.expireSession(sessionId, LocalDateTime.now().plusMinutes(1));
+
+        assertThat(orderRepository.findByCheckoutSession_Id(sessionId))
+                .singleElement()
+                .satisfies(order -> assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED));
+        assertThat(variantRepository.findById(variant.getId()).orElseThrow().getStockQuantity())
+                .isEqualTo(5);
+        assertThat(sessionRepository.findById(sessionId).orElseThrow().getStatus())
+                .isEqualTo(CheckoutStatus.EXPIRED);
+        assertThat(sessionRepository.findById(sessionId).orElseThrow().getTotalAmountMinor())
+                .isZero();
+
+        Payment expiredPayment = paymentRepository.findByCheckoutSession_Id(sessionId).orElseThrow();
+        assertThat(expiredPayment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(expiredPayment.getAmountMinor()).isZero();
     }
 
     // ------------------------------------------------------------------ rollback / race
@@ -429,6 +506,7 @@ class CheckoutServiceIntegrationTest {
                 .recipientName("Nguyễn Văn Test")
                 .phone("0901234567")
                 .fullAddress("123 Đường Test, Phường 1, Quận 1, TP.HCM")
+                .province("Hồ Chí Minh")
                 .paymentMethod(paymentMethod)
                 .cartItemIds(Arrays.asList(cartItemIds))
                 .build();

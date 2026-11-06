@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sản phẩm | Quản lý cửa hàng | MarketHub</title>
+  <meta name="description" content="">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23007439'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='18' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="panel">
+    <aside class="panel__side">
+      <a class="panel__brand" href="index.html">
+        <span class="brand__name">MarketHub</span>
+        <span class="brand__sub">Quản lý cửa hàng</span>
+      </a>
+      <nav class="panel__nav" aria-label="Điều hướng quản lý">
+        <span class="panel__label">Không gian làm việc</span>
+        <a class="panel__link" href="store.html"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg><span>Tổng quan</span></a><a class="panel__link" href="store-products.html" aria-current="page"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.5 7.5 4 7.5-4"/><path d="M12 21v-9.5"/></svg><span>Sản phẩm</span></a><a class="panel__link" href="store-orders.html"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17"/><path d="M9 4V2h6v2"/><path d="M8 9h8"/><path d="M8 13h8"/><path d="M8 17h5"/></svg><span>Đơn hàng</span><span class="cart-count" style="margin-left:auto">7</span></a><a class="panel__link" href="store.html"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg><span>Cài đặt cửa hàng</span></a>
+      </nav>
+      <div class="panel__foot">
+        <p>MarketHub · Quản lý cửa hàng</p>
+        <p style="margin-top:var(--space-2)">Giao diện thử nghiệm</p>
+      </div>
+    </aside>
+    <div class="panel__main">
+      <div class="panel__top">
+        <div class="panel__top-left"><span>Cửa hàng</span><span>/</span><strong style="color:var(--ink);font-weight:600">Sản phẩm</strong></div>
+        <div class="panel__top-right"><a class="link link--plain" href="index.html">Xem cửa hàng <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="m20 4-9 9"/><path d="M20 14v6H4V4h6"/></svg></a><span class="user-chip"><span class="user-chip__avatar">TZ</span>Tech Zone</span></div>
+      </div>
+      <div class="panel__content">
+    <div class="panel__head">
+      <div><h1>Sản phẩm</h1><p>24 sản phẩm, 24 đang hoạt động, 0 đã xoá</p></div>
+      <div class="panel__head-actions"><a class="btn btn--sm btn--primary" href="#"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Thêm sản phẩm</a></div>
+    </div>
+
+    <div class="panel-toolbar">
+      <div class="segmented" aria-label="Lọc trạng thái">
+        <a href="#" aria-current="page">Đang bán <span class="filter-tab__count">24</span></a>
+        <a href="#">Đã xoá <span class="filter-tab__count">0</span></a>
+      </div>
+      <label class="search-inline"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="sr-only">Tìm sản phẩm</span><input type="search" placeholder="Tìm theo tên hoặc SKU…"></label>
+    </div>
+
+    <section class="panel-card">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th class="num">Giá</th><th class="num">Tồn kho</th><th>Trạng thái</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/audio.jpg" alt=""></span><span><span class="table-product__name">Điện thoại MarketHub M2001</span><span class="table-product__sku">M2001 · Large-TechZone-01</span></span></div></td>
+              <td>Điện thoại</td>
+              <td class="num">2.490.000₫</td>
+              <td class="num">25</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Điện thoại MarketHub M2001"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/audio.jpg" alt=""></span><span><span class="table-product__name">Tai nghe Bluetooth MarketHub M2002</span><span class="table-product__sku">M2002 · Large-TechZone-02</span></span></div></td>
+              <td>Tai nghe</td>
+              <td class="num">510.000₫</td>
+              <td class="num">27</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Tai nghe Bluetooth MarketHub M2002"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/laptop.jpg" alt=""></span><span><span class="table-product__name">Sạc dự phòng MarketHub M2003</span><span class="table-product__sku">M2003 · Large-TechZone-03</span></span></div></td>
+              <td>Sạc dự phòng</td>
+              <td class="num">439.000₫</td>
+              <td class="num">29</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Sạc dự phòng MarketHub M2003"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/sunglasses.jpg" alt=""></span><span><span class="table-product__name">Ốp lưng silicon MarketHub M2004</span><span class="table-product__sku">M2004 · Large-TechZone-04</span></span></div></td>
+              <td>Ốp lưng</td>
+              <td class="num">159.000₫</td>
+              <td class="num">31</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Ốp lưng silicon MarketHub M2004"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/audio.jpg" alt=""></span><span><span class="table-product__name">Điện thoại thông minh MarketHub M2005</span><span class="table-product__sku">M2005 · Large-TechZone-05</span></span></div></td>
+              <td>Điện thoại</td>
+              <td class="num">2.570.000₫</td>
+              <td class="num">33</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Điện thoại thông minh MarketHub M2005"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/audio.jpg" alt=""></span><span><span class="table-product__name">Tai nghe chống ồn MarketHub M2006</span><span class="table-product__sku">M2006 · Large-TechZone-06</span></span></div></td>
+              <td>Tai nghe</td>
+              <td class="num">490.000₫</td>
+              <td class="num">35</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Tai nghe chống ồn MarketHub M2006"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/laptop.jpg" alt=""></span><span><span class="table-product__name">Pin sạc nhanh MarketHub M2007</span><span class="table-product__sku">M2007 · Large-TechZone-07</span></span></div></td>
+              <td>Sạc dự phòng</td>
+              <td class="num">419.000₫</td>
+              <td class="num">37</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Pin sạc nhanh MarketHub M2007"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr><tr>
+              <td><div class="table-product"><span class="table-product__media"><img src="assets/sunglasses.jpg" alt=""></span><span><span class="table-product__name">Ốp lưng chống sốc MarketHub M2008</span><span class="table-product__sku">M2008 · Large-TechZone-08</span></span></div></td>
+              <td>Ốp lưng</td>
+              <td class="num">139.000₫</td>
+              <td class="num">39</td>
+              <td><span class="status status--completed">Đang bán</span></td>
+              <td><div class="table-actions"><a href="#" aria-label="Sửa Ốp lưng chống sốc MarketHub M2008"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M4.2 4.2 6.3 6.3"/><path d="m17.7 17.7 2.1 2.1"/><path d="M2 12h3"/><path d="M19 12h3"/><path d="m4.2 19.8 2.1-2.1"/><path d="m17.7 6.3 2.1-2.1"/></svg></a></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <nav class="pagination" aria-label="Phân trang sản phẩm">
+      <span class="page-btn" aria-disabled="true"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4"/><path d="m10 18-6-6 6-6"/></svg></span>
+      <a class="page-btn" href="#" aria-current="page">1</a>
+      <a class="page-btn" href="#">2</a>
+      <a class="page-btn" href="#">3</a>
+      <a class="page-btn" href="#"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a>
+    </nav></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

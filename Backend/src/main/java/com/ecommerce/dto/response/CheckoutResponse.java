@@ -14,6 +14,7 @@ public class CheckoutResponse {
     int checkoutSessionId;
     String status;
     String paymentMethod;
+    String paymentStatus;
     int totalAmountMinor;
     List<OrderSummary> orders;
 

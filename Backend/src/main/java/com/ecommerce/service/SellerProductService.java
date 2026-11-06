@@ -3,6 +3,7 @@ package com.ecommerce.service;
 import com.ecommerce.dto.request.ProductCreateRequest;
 import com.ecommerce.dto.request.ProductUpdateRequest;
 import com.ecommerce.dto.request.VariantRequest;
+import com.ecommerce.dto.response.AdminProductStatsResponse;
 import com.ecommerce.dto.response.PageResponse;
 import com.ecommerce.dto.response.ProductImageResponse;
 import com.ecommerce.dto.response.ProductVariantResponse;
@@ -12,6 +13,7 @@ import com.ecommerce.entity.Product;
 import com.ecommerce.entity.ProductImage;
 import com.ecommerce.entity.ProductVariant;
 import com.ecommerce.entity.Shop;
+import com.ecommerce.entity.ShopStatus;
 import com.ecommerce.entity.User;
 import com.ecommerce.exception.AppException;
 import com.ecommerce.exception.ErrorCode;
@@ -44,8 +46,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Bộ API dành cho Seller (Job 3). Mọi thao tác đều kiểm tra
- * shop.user_id == currentUser.id thông qua Product.shopId.
+ * Nghiệp vụ quản lý sản phẩm dùng chung cho Seller và Admin.
+ *
+ * <p>API seller kiểm tra shop.user_id == currentUser.id thông qua Product.shopId.
+ * API admin bỏ kiểm tra sở hữu shop nhưng vẫn dùng chung toàn bộ logic validate,
+ * biến thể, ảnh và xoá mềm để hai luồng không lệch hành vi.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -54,6 +59,7 @@ public class SellerProductService {
     private static final int MAX_IMAGES_PER_PRODUCT = 10;
     private static final int MAX_ATTRIBUTES = 20;
     private static final int MAX_ATTRIBUTE_LENGTH = 100;
+    private static final int LOW_STOCK_THRESHOLD = 5;
     private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_DELETED = "DELETED";
 
@@ -71,7 +77,15 @@ public class SellerProductService {
 
     @Transactional
     public SellerProductResponse create(String email, ProductCreateRequest request) {
-        Shop shop = getShop(email);
+        return createInShop(getShop(email), request);
+    }
+
+    @Transactional
+    public SellerProductResponse createForAdmin(ProductCreateRequest request) {
+        return createInShop(getOfficialShop(), request);
+    }
+
+    private SellerProductResponse createInShop(Shop shop, ProductCreateRequest request) {
         Category category = resolveCategory(request.getCategoryId());
         List<VariantRequest> variantRequests = request.getVariants() == null ? List.of() : request.getVariants();
         validateVariantRequests(variantRequests);
@@ -101,16 +115,45 @@ public class SellerProductService {
 
     @Transactional(readOnly = true)
     public PageResponse<SellerProductResponse> list(String email, String q, String status, int page, int size) {
-        Shop shop = getShop(email);
+        return listProducts(String.valueOf(getShop(email).getId()), q, status, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<SellerProductResponse> listForAdmin(String q, String status, int page, int size) {
+        return listProducts(null, q, status, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminProductStatsResponse statsForAdmin() {
+        long activeProducts = productRepository.countByStatusIgnoreCase(STATUS_ACTIVE);
+        long deletedProducts = productRepository.countByStatusIgnoreCase(STATUS_DELETED);
+        long totalVariants = variantRepository.countByProductStatus(STATUS_ACTIVE);
+        long totalStock = variantRepository.sumStockByProductStatus(STATUS_ACTIVE);
+        long outOfStockVariants = variantRepository.countOutOfStockByProductStatus(STATUS_ACTIVE);
+        long lowStockVariants = variantRepository.countLowStockByProductStatus(
+                STATUS_ACTIVE, LOW_STOCK_THRESHOLD);
+        long soldCount = productRepository.sumSoldCountByStatus(STATUS_ACTIVE);
+        long categoriesInUse = productRepository.countDistinctCategoryByStatus(STATUS_ACTIVE);
+
+        return new AdminProductStatsResponse(activeProducts, deletedProducts, totalVariants,
+                totalStock, outOfStockVariants, lowStockVariants, soldCount, categoriesInUse);
+    }
+
+    /**
+     * @param shopId null = Admin xem toàn bộ sản phẩm, không giới hạn theo shop.
+     */
+    private PageResponse<SellerProductResponse> listProducts(String shopId, String q, String status,
+                                                             int page, int size) {
         int safePage = Math.max(1, page);
         int safeSize = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
-        String shopId = String.valueOf(shop.getId());
         String keyword = q == null || q.isBlank() ? null : "%" + q.trim().toLowerCase(Locale.ROOT) + "%";
         String statusFilter = status == null || status.isBlank() ? null : status.trim().toUpperCase(Locale.ROOT);
 
         Specification<Product> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("shopId"), shopId));
+            if (shopId != null) {
+                predicates.add(cb.equal(root.get("shopId"), shopId));
+            }
             if (statusFilter == null) {
                 predicates.add(cb.notEqual(cb.upper(root.get("status")), STATUS_DELETED));
             } else {
@@ -136,12 +179,24 @@ public class SellerProductService {
         return toResponse(product, categoryNames());
     }
 
+    @Transactional(readOnly = true)
+    public SellerProductResponse getForAdmin(Integer productId) {
+        return toResponse(getAnyProduct(productId, false), categoryNames());
+    }
+
     @Transactional
     public SellerProductResponse update(String email, Integer productId, ProductUpdateRequest request) {
         Shop shop = getShop(email);
-        Product product = getOwnedProduct(shop, productId, true);
-        Category category = resolveCategory(request.getCategoryId());
+        return applyUpdate(getOwnedProduct(shop, productId, true), request);
+    }
 
+    @Transactional
+    public SellerProductResponse updateForAdmin(Integer productId, ProductUpdateRequest request) {
+        return applyUpdate(getAnyProduct(productId, true), request);
+    }
+
+    private SellerProductResponse applyUpdate(Product product, ProductUpdateRequest request) {
+        Category category = resolveCategory(request.getCategoryId());
         product.setName(request.getName().trim());
         product.setDescription(blankToNull(request.getDescription()));
         product.setCategoryId(String.valueOf(category.getId()));
@@ -151,8 +206,12 @@ public class SellerProductService {
     @Transactional
     public void delete(String email, Integer productId) {
         Shop shop = getShop(email);
-        Product product = getOwnedProduct(shop, productId, true);
-        product.setStatus(STATUS_DELETED);
+        getOwnedProduct(shop, productId, true).setStatus(STATUS_DELETED);
+    }
+
+    @Transactional
+    public void deleteForAdmin(Integer productId) {
+        getAnyProduct(productId, true).setStatus(STATUS_DELETED);
     }
 
     // ---------------------------------------------------------------- variants
@@ -160,8 +219,15 @@ public class SellerProductService {
     @Transactional
     public ProductVariantResponse addVariant(String email, Integer productId, VariantRequest request) {
         Shop shop = getShop(email);
-        Product product = getOwnedProduct(shop, productId, true);
+        return addVariantTo(getOwnedProduct(shop, productId, true), request);
+    }
 
+    @Transactional
+    public ProductVariantResponse addVariantForAdmin(Integer productId, VariantRequest request) {
+        return addVariantTo(getAnyProduct(productId, true), request);
+    }
+
+    private ProductVariantResponse addVariantTo(Product product, VariantRequest request) {
         ProductVariant variant = new ProductVariant();
         variant.setProduct(product);
         applyVariant(variant, request, null);
@@ -173,9 +239,20 @@ public class SellerProductService {
                                                  VariantRequest request) {
         Shop shop = getShop(email);
         getOwnedProduct(shop, productId, true);
+        return applyVariantUpdate(productId, variantId, request);
+    }
+
+    @Transactional
+    public ProductVariantResponse updateVariantForAdmin(Integer productId, Integer variantId,
+                                                         VariantRequest request) {
+        getAnyProduct(productId, true);
+        return applyVariantUpdate(productId, variantId, request);
+    }
+
+    private ProductVariantResponse applyVariantUpdate(Integer productId, Integer variantId,
+                                                      VariantRequest request) {
         ProductVariant variant = variantRepository.findByIdAndProductId(variantId, productId)
                 .orElseThrow(() -> new AppException(ErrorCode.VARIANT_NOT_EXISTED));
-
         applyVariant(variant, request, variantId);
         return toVariantResponse(variant);
     }
@@ -184,6 +261,16 @@ public class SellerProductService {
     public void deleteVariant(String email, Integer productId, Integer variantId) {
         Shop shop = getShop(email);
         getOwnedProduct(shop, productId, true);
+        removeVariant(productId, variantId);
+    }
+
+    @Transactional
+    public void deleteVariantForAdmin(Integer productId, Integer variantId) {
+        getAnyProduct(productId, true);
+        removeVariant(productId, variantId);
+    }
+
+    private void removeVariant(Integer productId, Integer variantId) {
         ProductVariant variant = variantRepository.findByIdAndProductId(variantId, productId)
                 .orElseThrow(() -> new AppException(ErrorCode.VARIANT_NOT_EXISTED));
 
@@ -206,8 +293,16 @@ public class SellerProductService {
     @Transactional
     public ProductImageResponse uploadImage(String email, Integer productId, MultipartFile file) {
         Shop shop = getShop(email);
-        Product product = getOwnedProduct(shop, productId, true);
+        return uploadImageTo(getOwnedProduct(shop, productId, true), file);
+    }
 
+    @Transactional
+    public ProductImageResponse uploadImageForAdmin(Integer productId, MultipartFile file) {
+        return uploadImageTo(getAnyProduct(productId, true), file);
+    }
+
+    private ProductImageResponse uploadImageTo(Product product, MultipartFile file) {
+        Integer productId = product.getId();
         if (imageRepository.countByProductId(productId) >= MAX_IMAGES_PER_PRODUCT) {
             throw new AppException(ErrorCode.PRODUCT_IMAGE_LIMIT_EXCEEDED);
         }
@@ -234,7 +329,16 @@ public class SellerProductService {
     @Transactional
     public void deleteImage(String email, Integer productId, Integer imageId) {
         Shop shop = getShop(email);
-        Product product = getOwnedProduct(shop, productId, true);
+        removeImage(getOwnedProduct(shop, productId, true), imageId);
+    }
+
+    @Transactional
+    public void deleteImageForAdmin(Integer productId, Integer imageId) {
+        removeImage(getAnyProduct(productId, true), imageId);
+    }
+
+    private void removeImage(Product product, Integer imageId) {
+        Integer productId = product.getId();
         ProductImage image = imageRepository.findByIdAndProductId(imageId, productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_IMAGE_NOT_EXISTED));
 
@@ -257,6 +361,29 @@ public class SellerProductService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return shopRepository.findByOwnerId(user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHOP_NOT_EXISTED));
+    }
+
+    /**
+     * Website single-brand dùng shop APPROVED có id nhỏ nhất làm shop chính thức.
+     * Sản phẩm do Admin tạo được gán về shop này để checkout vẫn gom đơn đúng.
+     */
+    private Shop getOfficialShop() {
+        return shopRepository.findFirstByStatusOrderByIdAsc(ShopStatus.APPROVED)
+                .orElseThrow(() -> new AppException(ErrorCode.SHOP_NOT_EXISTED));
+    }
+
+    /**
+     * Admin quản lý sản phẩm của mọi shop cũ; chỉ cần sản phẩm tồn tại.
+     *
+     * @param activeOnly true với các thao tác ghi: sản phẩm đã xoá mềm coi như không tồn tại.
+     */
+    private Product getAnyProduct(Integer productId, boolean activeOnly) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
+        if (activeOnly && STATUS_DELETED.equalsIgnoreCase(product.getStatus())) {
+            throw new AppException(ErrorCode.PRODUCT_NOT_EXISTED);
+        }
+        return product;
     }
 
     /**

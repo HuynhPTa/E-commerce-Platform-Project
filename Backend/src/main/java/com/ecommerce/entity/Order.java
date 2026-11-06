@@ -62,6 +62,10 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Thời điểm đơn chuyển sang COMPLETED, dùng cho báo cáo doanh thu theo ngày hoàn tất.
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     public void addItem(OrderItem item) {
         item.setOrder(this);
         items.add(item);

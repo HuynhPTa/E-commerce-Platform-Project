@@ -13,5 +13,6 @@ public class AddressResponse {
     String recipientName;
     String phone;
     String fullAddress;
+    String province;
     boolean defaultAddress;
 }

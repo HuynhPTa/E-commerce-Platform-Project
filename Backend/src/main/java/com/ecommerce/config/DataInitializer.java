@@ -44,6 +44,7 @@ public class DataInitializer implements ApplicationRunner {
                 .status(1)
                 .isDelete(0)
                 .admin(true)
+                .role("ADMIN")
                 .build();
         userRepository.save(admin);
         log.info("Đã tạo tài khoản admin {}", adminEmail);

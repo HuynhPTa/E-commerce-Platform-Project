@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tất cả sản phẩm | MarketHub</title>
+  <meta name="description" content="300 sản phẩm thuộc 9 danh mục tại MarketHub.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23007439'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='18' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="announce">
+    <div class="container announce__inner">
+      <div class="announce__group announce__group--left"><span>Miễn phí giao hàng cho đơn từ 499.000₫</span></div>
+      <div class="announce__group announce__group--right">
+        <span>Thanh toán VNPay · MoMo</span>
+        <a href="orders.html">Đổi trả 30 ngày</a>
+      </div>
+    </div>
+  </div>
+  <header class="site-head">
+    <div class="container">
+      <div class="head-main">
+        <details class="mobile-nav">
+          <summary class="menu-toggle" aria-label="Mở menu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg></summary>
+          <nav class="mobile-nav__panel" aria-label="Danh mục di động">
+            <a href="products.html">Hàng mới<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a><a href="products.html">Công nghệ<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a><a href="products.html">Nhà cửa<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a><a href="products.html">Thời trang<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a><a href="products.html">Làm đẹp<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a><a href="products.html">Sách<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a><a href="products.html">Thể thao<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a>
+            <div class="mobile-nav__utility">
+              <a href="orders.html">Đơn hàng</a>
+              <a href="account.html">Tài khoản</a>
+              <a href="login.html">Đăng nhập</a>
+            </div>
+          </nav>
+        </details>
+        <a class="brand" href="index.html" aria-label="MarketHub, trang chủ">
+          <span class="brand__name">MarketHub</span>
+          <span class="brand__sub">Cửa hàng chính thức</span>
+        </a>
+        <form class="head-search" role="search" action="products.html" method="get">
+          <label class="sr-only" for="q">Tìm sản phẩm</label>
+          <input id="q" name="q" type="search" placeholder="Tìm sản phẩm, danh mục…" autocomplete="off">
+          <button type="submit" aria-label="Tìm kiếm"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+        </form>
+        <div class="head-actions">
+          <a class="head-action" href="account.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Tài khoản</span></a>
+          <a class="head-action head-action--orders" href="orders.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.5 7.5 4 7.5-4"/><path d="M12 21v-9.5"/></svg><span>Đơn hàng</span></a>
+          <a class="head-action" href="cart.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span>Giỏ</span><span class="cart-count">2</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="container nav-bar__inner">
+        <nav class="nav-list" aria-label="Danh mục sản phẩm"><a href="products.html" aria-current="page">Hàng mới</a><a href="products.html">Công nghệ</a><a href="products.html">Nhà cửa</a><a href="products.html">Thời trang</a><a href="products.html">Làm đẹp</a><a href="products.html">Sách</a><a href="products.html">Thể thao</a></nav>
+        <span class="nav-note">300 sản phẩm, giao toàn quốc</span>
+      </div>
+    </div>
+  </header>
+  <main class="app-main">
+  <div class="container">
+    <div class="page-head">
+      <div>
+        <h1>Tất cả sản phẩm</h1>
+        <p>300 sản phẩm thuộc 9 danh mục. Lọc theo nhu cầu, sắp xếp theo giá hoặc mức độ bán chạy.</p>
+      </div>
+      <div class="page-head__aside">Trang 1 / 25</div>
+    </div>
+
+    <div class="catalog-layout">
+      <aside class="filters" aria-label="Bộ lọc sản phẩm">
+        <div class="filter-panel">
+          <details class="filter-group" open>
+            <summary>Danh mục <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="filter-options">
+              <label class="checkbox"><input type="checkbox"><span>Điện thoại &amp; Phụ kiện</span><span>62</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Máy tính &amp; Laptop</span><span>37</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Thời trang nữ</span><span>30</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Thời trang nam</span><span>32</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Giày dép</span><span>32</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Nhà cửa &amp; Đời sống</span><span>29</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Sắc đẹp</span><span>24</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Sách &amp; Văn phòng phẩm</span><span>30</span></label>
+              <label class="checkbox"><input type="checkbox"><span>Thể thao &amp; Du lịch</span><span>24</span></label>
+            </div>
+          </details>
+          <details class="filter-group" open>
+            <summary>Giá <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="price-range">
+              <label class="sr-only" for="min">Giá thấp nhất</label>
+              <input class="input" id="min" inputmode="numeric" placeholder="Từ">
+              <label class="sr-only" for="max">Giá cao nhất</label>
+              <input class="input" id="max" inputmode="numeric" placeholder="Đến">
+            </div>
+            <button class="btn btn--sm btn--block" type="button" style="margin-top: var(--space-2)">Áp dụng</button>
+          </details>
+          <details class="filter-group">
+            <summary>Đánh giá <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="filter-options">
+              <label class="checkbox"><input type="checkbox"><span>5 sao</span></label>
+              <label class="checkbox"><input type="checkbox"><span>4 sao trở lên</span></label>
+              <label class="checkbox"><input type="checkbox"><span>3 sao trở lên</span></label>
+            </div>
+          </details>
+          <details class="filter-group">
+            <summary>Tình trạng <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="filter-options">
+              <label class="checkbox"><input type="checkbox" checked><span>Còn hàng</span></label>
+            </div>
+          </details>
+        </div>
+      </aside>
+
+      <div>
+        <div class="catalog-toolbar">
+          <div class="catalog-toolbar__count">Hiển thị <strong>1-12</strong> trong <strong>300</strong> sản phẩm</div>
+          <label class="sort-control" for="sort">Sắp xếp
+            <select id="sort">
+              <option>Mới nhất</option>
+              <option>Bán chạy</option>
+              <option>Giá thấp đến cao</option>
+              <option>Giá cao đến thấp</option>
+            </select>
+          </label>
+        </div>
+        <div class="product-grid product-grid--3"><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Túi du lịch MarketHub M2220">
+        <img src="assets/bag.jpg" alt="Túi du lịch MarketHub M2220">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Túi du lịch MarketHub M2220" aria-label="Thêm Túi du lịch MarketHub M2220 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Túi du lịch MarketHub M2220</a>
+      <div class="product-price">459.000₫</div>
+      <div class="product-rating"><span class="stars" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>5.0 (2)</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Laptop văn phòng MarketHub M2061">
+        <img src="assets/laptop.jpg" alt="Laptop văn phòng MarketHub M2061">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Laptop văn phòng MarketHub M2061" aria-label="Thêm Laptop văn phòng MarketHub M2061 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Laptop văn phòng MarketHub M2061</a>
+      <div class="product-price">13.030.000₫</div>
+      <div class="product-rating"><span class="stars" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>4.0 (3)</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Nước hoa MarketHub M2171">
+        <img src="assets/perfume.jpg" alt="Nước hoa MarketHub M2171">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Nước hoa MarketHub M2171" aria-label="Thêm Nước hoa MarketHub M2171 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Nước hoa MarketHub M2171</a>
+      <div class="product-price">939.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Giày thể thao MarketHub M2121">
+        <img src="assets/shoes.jpg" alt="Giày thể thao MarketHub M2121">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Giày thể thao MarketHub M2121" aria-label="Thêm Giày thể thao MarketHub M2121 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Giày thể thao MarketHub M2121</a>
+      <div class="product-price">899.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Tai nghe Bluetooth MarketHub Air">
+        <img src="assets/audio.jpg" alt="Tai nghe Bluetooth MarketHub Air">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Tai nghe Bluetooth MarketHub Air" aria-label="Thêm Tai nghe Bluetooth MarketHub Air vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Tai nghe Bluetooth MarketHub Air</a>
+      <div class="product-price">459.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Đèn ngủ để bàn MarketHub Glow">
+        <img src="assets/lamp.jpg" alt="Đèn ngủ để bàn MarketHub Glow">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Đèn ngủ để bàn MarketHub Glow" aria-label="Thêm Đèn ngủ để bàn MarketHub Glow vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Đèn ngủ để bàn MarketHub Glow</a>
+      <div class="product-price">249.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Bộ ly thủy tinh MarketHub 6 món">
+        <img src="assets/ceramics.jpg" alt="Bộ ly thủy tinh MarketHub 6 món">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Bộ ly thủy tinh MarketHub 6 món" aria-label="Thêm Bộ ly thủy tinh MarketHub 6 món vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Bộ ly thủy tinh MarketHub 6 món</a>
+      <div class="product-price">329.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Sách kỹ năng MarketHub M2193">
+        <img src="assets/books.jpg" alt="Sách kỹ năng MarketHub M2193">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Sách kỹ năng MarketHub M2193" aria-label="Thêm Sách kỹ năng MarketHub M2193 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Sách kỹ năng MarketHub M2193</a>
+      <div class="product-price">99.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Kệ gỗ treo tường MarketHub">
+        <img src="assets/books.jpg" alt="Kệ gỗ treo tường MarketHub">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Kệ gỗ treo tường MarketHub" aria-label="Thêm Kệ gỗ treo tường MarketHub vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Kệ gỗ treo tường MarketHub</a>
+      <div class="product-price">349.000₫</div>
+      <div class="product-rating"><span class="stars" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>4.0 (1)</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Xịt thơm MarketHub M2174">
+        <img src="assets/perfume.jpg" alt="Xịt thơm MarketHub M2174">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Xịt thơm MarketHub M2174" aria-label="Thêm Xịt thơm MarketHub M2174 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Xịt thơm MarketHub M2174</a>
+      <div class="product-price">899.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Kem dưỡng da MarketHub M2169">
+        <img src="assets/soap.jpg" alt="Kem dưỡng da MarketHub M2169">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Kem dưỡng da MarketHub M2169" aria-label="Thêm Kem dưỡng da MarketHub M2169 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Kem dưỡng da MarketHub M2169</a>
+      <div class="product-price">299.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article><article class="product-card">
+    <div class="product-media">
+      <a href="product.html" aria-label="Tai nghe Bluetooth MarketHub M2002">
+        <img src="assets/audio.jpg" alt="Tai nghe Bluetooth MarketHub M2002">
+      </a>
+      
+      <button class="quick-add" type="button" data-add="Tai nghe Bluetooth MarketHub M2002" aria-label="Thêm Tai nghe Bluetooth MarketHub M2002 vào giỏ"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+    </div>
+    <div class="product-info">
+      <a class="product-name" href="product.html">Tai nghe Bluetooth MarketHub M2002</a>
+      <div class="product-price">510.000₫</div>
+      <div class="product-rating"><span class="stars stars--empty" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.6 6.1 20.8l1.2-6.6L2.5 9.5l6.6-.9z"/></svg></span><span>Chưa có đánh giá</span></div>
+    </div>
+  </article></div>
+        <nav class="pagination" aria-label="Phân trang">
+          <span class="page-btn" aria-disabled="true"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4"/><path d="m10 18-6-6 6-6"/></svg></span>
+          <a class="page-btn" href="#" aria-current="page">1</a>
+          <a class="page-btn" href="#">2</a>
+          <a class="page-btn" href="#">3</a>
+          <span class="page-btn">…</span>
+          <a class="page-btn" href="#">25</a>
+          <a class="page-btn" href="#"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/></svg></a>
+        </nav>
+      </div>
+    </div>
+  </div></main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-main">
+        <div class="footer-brand">
+          <span class="brand__name">MarketHub</span>
+          <p>Một cửa hàng tuyển chọn đồ công nghệ, nhà cửa, thời trang và sách. Chúng tôi chọn ít, nhưng chọn kỹ.</p>
+          <div class="footer-pay">
+            <span class="pay-mark">VNPay</span>
+            <span class="pay-mark">MoMo</span>
+            <span class="pay-mark">Visa · Mastercard</span>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col__title">Mua sắm</h2>
+          <ul>
+            <li><a href="products.html">Tất cả sản phẩm</a></li>
+            <li><a href="products.html">Hàng mới</a></li>
+            <li><a href="products.html">Công nghệ</a></li>
+            <li><a href="products.html">Nhà cửa &amp; Đời sống</a></li>
+            <li><a href="products.html">Sách &amp; Văn phòng phẩm</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col__title">Hỗ trợ</h2>
+          <ul>
+            <li><a href="orders.html">Đơn hàng của tôi</a></li>
+            <li><a href="account.html">Địa chỉ giao hàng</a></li>
+            <li><a href="orders.html">Đổi trả &amp; bảo hành</a></li>
+            <li><a href="login.html">Đăng nhập</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h2 class="footer-col__title">MarketHub</h2>
+          <ul>
+            <li><a href="index.html">Câu chuyện cửa hàng</a></li>
+            <li><a href="index.html">Cách chúng tôi chọn hàng</a></li>
+            <li><a href="index.html">Cửa hàng chính thức</a></li>
+            <li><span>Hỗ trợ 8:00 tới 21:00</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MarketHub. Ảnh minh hoạ từ Wikimedia Commons.</span>
+        <span>Prototype UI · Dữ liệu demo từ MarketHub</span>
+      </div>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+  
+</body>
+</html>

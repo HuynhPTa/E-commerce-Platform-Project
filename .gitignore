@@ -16,4 +16,8 @@ Backend/.mvn/
 *.iml
 .DS_Store
 *.log
+
+# Tooling
+.hallmark/
 Backend/src/main/resources/application.properties
+Backend/src/main/resources/application-secrets.properties

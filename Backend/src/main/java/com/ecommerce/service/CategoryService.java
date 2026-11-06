@@ -1,6 +1,7 @@
 package com.ecommerce.service;
 
 import com.ecommerce.dto.request.CategoryRequest;
+import com.ecommerce.dto.response.AdminCategoryStatsResponse;
 import com.ecommerce.dto.response.CategoryResponse;
 import com.ecommerce.entity.Category;
 import com.ecommerce.exception.AppException;
@@ -36,6 +37,61 @@ public class CategoryService {
         List<CategoryResponse> out = new ArrayList<>();
         walkFlat(byParent, null, 0, out);
         return out;
+    }
+
+    // Số liệu tổng hợp cho trang quản trị danh mục.
+    @Transactional(readOnly = true)
+    public AdminCategoryStatsResponse stats() {
+        List<Category> all = categoryRepository.findAllWithParent();
+
+        // Đếm sản phẩm đang bán theo khoá danh mục (id hoặc slug).
+        Map<String, Long> productCounts = new HashMap<>();
+        for (Object[] row : productRepository.countGroupByCategoryIdAndStatus("ACTIVE")) {
+            productCounts.put(String.valueOf(row[0]), (Long) row[1]);
+        }
+
+        Map<Integer, List<Category>> byParent = groupByParent(all);
+
+        // Danh mục cha được coi là có sản phẩm khi bản thân hoặc con cháu có sản phẩm.
+        Set<Integer> idsWithProducts = new HashSet<>();
+        for (Category category : all) {
+            long directCount = 0;
+            Long countById = productCounts.get(String.valueOf(category.getId()));
+            if (countById != null) {
+                directCount = directCount + countById;
+            }
+            Long countBySlug = productCounts.get(category.getSlug());
+            if (countBySlug != null) {
+                directCount = directCount + countBySlug;
+            }
+            if (directCount > 0) {
+                Category current = category;
+                while (current != null) {
+                    idsWithProducts.add(current.getId());
+                    current = current.getParent();
+                }
+            }
+        }
+
+        long rootCategories = byParent.getOrDefault(null, List.of()).size();
+        long leafCategories = 0;
+        long maxDepth = 0;
+        for (Category category : all) {
+            List<Category> children = byParent.get(category.getId());
+            if (children == null || children.isEmpty()) {
+                leafCategories = leafCategories + 1;
+            }
+            int depth = depthOf(category);
+            if (depth > maxDepth) {
+                maxDepth = depth;
+            }
+        }
+
+        long totalCategories = all.size();
+        long categoriesWithProducts = idsWithProducts.size();
+        long emptyCategories = totalCategories - categoriesWithProducts;
+        return new AdminCategoryStatsResponse(totalCategories, rootCategories, leafCategories,
+                categoriesWithProducts, emptyCategories, maxDepth);
     }
 
     // Trả về id (dạng chuỗi) và slug của danh mục + toàn bộ danh mục con cháu.

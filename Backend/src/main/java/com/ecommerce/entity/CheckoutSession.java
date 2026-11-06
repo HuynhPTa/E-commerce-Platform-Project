@@ -8,7 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "checkout_sessions")
+@Table(name = "checkout_sessions",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_checkout_session_idempotency",
+                columnNames = {"buyer_id", "idempotency_key"}))
 @Getter @Setter
 @NoArgsConstructor
 public class CheckoutSession {
@@ -30,6 +33,11 @@ public class CheckoutSession {
 
     @Column(name = "total_amount_minor", nullable = false)
     private int totalAmountMinor;
+
+    // Khoá chống tạo trùng đơn khi người dùng bấm đặt hàng nhiều lần.
+    // Cho phép null để tương thích các phiên cũ chưa có khoá.
+    @Column(name = "idempotency_key", length = 64)
+    private String idempotencyKey;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

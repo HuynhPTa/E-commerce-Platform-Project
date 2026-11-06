@@ -9,10 +9,13 @@ import com.ecommerce.repository.CheckoutCartRepository;
 import com.ecommerce.repository.CheckoutCartRepository.CartLine;
 import com.ecommerce.repository.CheckoutSessionRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.PaymentRepository;
 import com.ecommerce.repository.ShopRepository;
+import com.ecommerce.util.ShippingPolicy;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +30,7 @@ public class CheckoutService {
     private final CheckoutCartRepository cartRepository;
     private final CheckoutSessionRepository sessionRepository;
     private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
     private final ShopRepository shopRepository;
     private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
@@ -38,6 +42,24 @@ public class CheckoutService {
      */
     @Transactional
     public CheckoutResponse checkout(int buyerId, CheckoutRequest request) {
+        // 0. Khoá dòng người dùng để hai lần bấm đặt hàng đồng thời không cùng đọc giỏ.
+        User buyer = entityManager.find(User.class, buyerId, LockModeType.PESSIMISTIC_WRITE);
+        if (buyer == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
+        // 0b. Nếu client gửi lại cùng khoá (mất mạng, bấm đúp) thì trả phiên đã tạo.
+        String idempotencyKey = request.getIdempotencyKey();
+        if (idempotencyKey != null && idempotencyKey.isBlank() == false) {
+            CheckoutSession existing = sessionRepository
+                    .findByBuyer_IdAndIdempotencyKey(buyerId, idempotencyKey.trim())
+                    .orElse(null);
+            if (existing != null) {
+                return toResponse(existing,
+                        orderRepository.findByCheckoutSession_Id(existing.getId()));
+            }
+        }
+
         // 1. Đọc giỏ hàng + giá + shop từ DB (không tin client)
         List<CartLine> lines = cartRepository.findLines(buyerId, request.getCartItemIds());
         validateLines(lines, request.getCartItemIds());
@@ -61,6 +83,13 @@ public class CheckoutService {
         }
         int totalMinor = toAmountMinor(total);
 
+        // 2b. Tính phí vận chuyển theo tỉnh/thành và ngưỡng miễn phí toàn quốc.
+        if (ShippingPolicy.isSupported(request.getProvince()) == false) {
+            throw new AppException(ErrorCode.INVALID_INPUT);
+        }
+        int shippingFeeMinor = ShippingPolicy.feeFor(request.getProvince(), totalMinor);
+        int grandTotalMinor = toAmountMinor(addAmount(totalMinor, shippingFeeMinor));
+
         // 3. Trừ kho nguyên tử. Sắp xếp theo variantId để các giao dịch đồng thời
         //    khóa dòng theo cùng thứ tự -> tránh deadlock.
         lines.stream()
@@ -72,15 +101,25 @@ public class CheckoutService {
                 });
 
         // 4. Tạo checkout_session (điểm neo cho 1 lượt thanh toán)
-        User buyer = entityManager.getReference(User.class, buyerId);
         CheckoutSession session = new CheckoutSession();
         session.setBuyer(buyer);
         session.setStatus(CheckoutStatus.PENDING);
         session.setPaymentMethod(request.getPaymentMethod());
-        session.setTotalAmountMinor(totalMinor);
+        session.setTotalAmountMinor(grandTotalMinor);
+        session.setIdempotencyKey(normalizeIdempotencyKey(idempotencyKey));
         sessionRepository.save(session);
 
-        // 5. Mỗi shop 1 order
+        // 4b. Đơn COD có sẵn giao dịch chờ thu tiền khi giao hàng.
+        if (request.getPaymentMethod() == PaymentMethod.COD) {
+            Payment payment = new Payment();
+            payment.setCheckoutSession(session);
+            payment.setProvider(PaymentMethod.COD);
+            payment.setAmountMinor(grandTotalMinor);
+            payment.setStatus(PaymentStatus.PENDING);
+            paymentRepository.save(payment);
+        }
+
+        // 5. Mỗi shop 1 order. Phí vận chuyển gán cho đơn đầu tiên để tổng các đơn khớp phiên.
         List<Order> orders = new ArrayList<>();
         for (Map.Entry<Integer, List<CartLine>> entry : byShop.entrySet()) {
             Order order = new Order();
@@ -101,9 +140,13 @@ public class CheckoutService {
                 order.addItem(item);
             }
             int subtotal = subtotals.get(entry.getKey());
+            int orderShippingFee = 0;
+            if (orders.isEmpty()) {
+                orderShippingFee = shippingFeeMinor;
+            }
             order.setSubtotalMinor(subtotal);
-            order.setShippingFeeMinor(0);
-            order.setTotalMinor(subtotal);
+            order.setShippingFeeMinor(orderShippingFee);
+            order.setTotalMinor(toAmountMinor(addAmount(subtotal, orderShippingFee)));
             orderRepository.save(order);
             orders.add(order);
         }
@@ -129,6 +172,21 @@ public class CheckoutService {
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /** Chuẩn hoá khoá chống trùng; khoá rỗng được coi như không gửi. */
+    private static String normalizeIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null) {
+            return null;
+        }
+        String normalized = idempotencyKey.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        if (normalized.length() > 64) {
+            throw new AppException(ErrorCode.INVALID_INPUT);
+        }
+        return normalized;
+    }
 
     private void validateLines(List<CartLine> lines, List<Integer> requestedIds) {
         // cartItemIds lạ (của người khác / đã bị xóa) phải báo INVALID_CART_ITEM,
@@ -190,6 +248,7 @@ public class CheckoutService {
         snapshot.put("recipientName", request.getRecipientName() != null ? request.getRecipientName().trim() : null);
         snapshot.put("phone", request.getPhone());
         snapshot.put("fullAddress", request.getFullAddress() != null ? request.getFullAddress().trim() : null);
+        snapshot.put("province", request.getProvince() != null ? request.getProvince().trim() : null);
         return snapshot;
     }
 
@@ -207,6 +266,8 @@ public class CheckoutService {
                 .checkoutSessionId(session.getId())
                 .status(session.getStatus().name())
                 .paymentMethod(session.getPaymentMethod().name())
+                .paymentStatus(paymentRepository.findByCheckoutSession_Id(session.getId())
+                        .map(payment -> payment.getStatus().name()).orElse(null))
                 .totalAmountMinor(session.getTotalAmountMinor())
                 .orders(orders.stream().map(o -> CheckoutResponse.OrderSummary.builder()
                         .orderId(o.getId())

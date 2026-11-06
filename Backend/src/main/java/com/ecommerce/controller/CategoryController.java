@@ -1,6 +1,7 @@
 package com.ecommerce.controller;
 
 import com.ecommerce.dto.request.CategoryRequest;
+import com.ecommerce.dto.response.AdminCategoryStatsResponse;
 import com.ecommerce.dto.response.ApiResponse;
 import com.ecommerce.dto.response.CategoryResponse;
 import com.ecommerce.service.CategoryService;
@@ -27,6 +28,13 @@ public class CategoryController {
     @GetMapping("/flat")
     public ApiResponse<List<CategoryResponse>> flat() {
         return ApiResponse.<List<CategoryResponse>>builder().code(1000).result(categoryService.flat()).build();
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<AdminCategoryStatsResponse> stats() {
+        return ApiResponse.<AdminCategoryStatsResponse>builder().code(1000)
+                .result(categoryService.stats()).build();
     }
 
     @PostMapping
