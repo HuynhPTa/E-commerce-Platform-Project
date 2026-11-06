@@ -4,6 +4,9 @@ import Modal from "../common/Modal";
 import { errMsg } from "../../lib/errors";
 import { assetUrl, onImageError } from "../../lib/assetUrl";
 import { useDeleteProductImage, useUploadProductImage } from "../../queries/useSellerProducts";
+import {
+  useDeleteAdminProductImage, useUploadAdminProductImage,
+} from "../../queries/useAdminProducts";
 
 const MAX_IMAGES = 10;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -12,8 +15,14 @@ const ACCEPT = ALLOWED_TYPES.join(",");
 
 let pendingSeq = 0;
 
-function DeleteImageModal({ product, image, onClose }) {
-  const mutation = useDeleteProductImage();
+function DeleteImageModal({ product, image, onClose, scope }) {
+  const sellerMutation = useDeleteProductImage();
+  const adminMutation = useDeleteAdminProductImage();
+
+  let mutation = sellerMutation;
+  if (scope === "admin") {
+    mutation = adminMutation;
+  }
   return (
     <Modal
       title="Xoá ảnh sản phẩm"
@@ -41,8 +50,14 @@ function DeleteImageModal({ product, image, onClose }) {
   );
 }
 
-export default function ImageManager({ product, disabled = false }) {
-  const uploadMutation = useUploadProductImage();
+export default function ImageManager({ product, disabled = false, scope = "seller" }) {
+  const sellerUploadMutation = useUploadProductImage();
+  const adminUploadMutation = useUploadAdminProductImage();
+
+  let uploadMutation = sellerUploadMutation;
+  if (scope === "admin") {
+    uploadMutation = adminUploadMutation;
+  }
   const [pending, setPending] = useState([]); // [{ id, file, previewUrl, status, error }]
   const [notice, setNotice] = useState("");
   const [deleting, setDeleting] = useState(null);
@@ -190,7 +205,8 @@ export default function ImageManager({ product, disabled = false }) {
         )}
       </div>
 
-      {deleting && <DeleteImageModal product={product} image={deleting} onClose={() => setDeleting(null)} />}
+      {deleting && <DeleteImageModal product={product} image={deleting}
+                                     scope={scope} onClose={() => setDeleting(null)} />}
     </section>
   );
 }

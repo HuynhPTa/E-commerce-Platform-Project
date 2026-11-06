@@ -38,20 +38,46 @@ public class AdminDashboardService {
         long totalProducts = productRepository.count();
 
         long totalOrders = orderRepository.count();
-        long pendingOrders = orderRepository.countByStatus(OrderStatus.PENDING);
-        long completedOrders = orderRepository.countByStatus(OrderStatus.COMPLETED);
-        long cancelledOrders = orderRepository.countByStatus(OrderStatus.CANCELLED);
+        Map<String, Long> ordersByStatus = statusCounts(orderRepository.countGroupByStatus());
+        long pendingOrders = countStatus(ordersByStatus, OrderStatus.PENDING);
+        long confirmedOrders = countStatus(ordersByStatus, OrderStatus.CONFIRMED);
+        long shippingOrders = countStatus(ordersByStatus, OrderStatus.SHIPPING);
+        long deliveredOrders = countStatus(ordersByStatus, OrderStatus.DELIVERED);
+        long completedOrders = countStatus(ordersByStatus, OrderStatus.COMPLETED);
+        long cancelledOrders = countStatus(ordersByStatus, OrderStatus.CANCELLED);
+        long processingOrders = pendingOrders + confirmedOrders + shippingOrders;
         long revenueMinor = orderRepository.sumRevenueByStatus(OrderStatus.COMPLETED);
         long todayOrders = orderRepository.countByCreatedAtGreaterThanEqual(startOfToday);
         long todayRevenueMinor = orderRepository.sumRevenueByStatusSince(OrderStatus.COMPLETED, startOfToday);
+        long averageOrderValueMinor = 0;
+        if (completedOrders > 0) {
+            averageOrderValueMinor = revenueMinor / completedOrders;
+        }
 
-        Map<String, Long> ordersByStatus = statusCounts(orderRepository.countGroupByStatus());
         List<OrderSummaryResponse> recentOrders = orderResponseMapper
                 .toSummaries(orderRepository.findTop8ByOrderByCreatedAtDesc());
 
         return new AdminDashboardResponse(totalUsers, activeUsers, totalShops, pendingShops,
-                totalProducts, totalOrders, pendingOrders, completedOrders, cancelledOrders,
-                revenueMinor, todayOrders, todayRevenueMinor, ordersByStatus, recentOrders);
+                totalProducts, totalOrders, pendingOrders, confirmedOrders, shippingOrders,
+                deliveredOrders, completedOrders, cancelledOrders, processingOrders,
+                revenueMinor, todayOrders, todayRevenueMinor, averageOrderValueMinor,
+                percentage(completedOrders, totalOrders), percentage(cancelledOrders, totalOrders),
+                ordersByStatus, recentOrders);
+    }
+
+    private static long countStatus(Map<String, Long> counts, OrderStatus status) {
+        Long value = counts.get(status.name());
+        if (value == null) {
+            return 0;
+        }
+        return value;
+    }
+
+    private static double percentage(long part, long total) {
+        if (total == 0) {
+            return 0;
+        }
+        return Math.round(part * 1000.0 / total) / 10.0;
     }
 
     static Map<String, Long> statusCounts(List<Object[]> rows) {

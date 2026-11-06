@@ -29,6 +29,10 @@ public class Address {
     @Column(name = "full_address", nullable = false, columnDefinition = "TEXT")
     private String fullAddress;
 
+    // Tỉnh/thành phố dùng để tính phí vận chuyển. Cột nullable để tương thích dữ liệu cũ.
+    @Column(length = 80)
+    private String province;
+
     @Column(name = "is_default", nullable = false)
     private boolean defaultAddress;
 

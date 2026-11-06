@@ -36,4 +36,30 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Modifying
     @Query("update ProductVariant v set v.stockQuantity = v.stockQuantity + :quantity where v.id = :id")
     int increaseStock(@Param("id") int id, @Param("quantity") int quantity);
+
+    // ---------------------------------------------------------------- Thống kê
+
+    @Query("select count(v) from ProductVariant v where upper(v.product.status) = upper(:status)")
+    long countByProductStatus(@Param("status") String status);
+
+    @Query("""
+            select coalesce(sum(v.stockQuantity), 0) from ProductVariant v
+            where upper(v.product.status) = upper(:status)
+            """)
+    long sumStockByProductStatus(@Param("status") String status);
+
+    @Query("""
+            select count(v) from ProductVariant v
+            where upper(v.product.status) = upper(:status)
+              and v.stockQuantity = 0
+            """)
+    long countOutOfStockByProductStatus(@Param("status") String status);
+
+    @Query("""
+            select count(v) from ProductVariant v
+            where upper(v.product.status) = upper(:status)
+              and v.stockQuantity > 0
+              and v.stockQuantity <= :threshold
+            """)
+    long countLowStockByProductStatus(@Param("status") String status, @Param("threshold") int threshold);
 }

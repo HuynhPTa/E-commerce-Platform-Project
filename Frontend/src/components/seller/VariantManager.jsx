@@ -11,13 +11,27 @@ import {
 import {
   useCreateProductVariant, useDeleteProductVariant, useUpdateProductVariant,
 } from "../../queries/useSellerProducts";
+import {
+  useCreateAdminProductVariant, useDeleteAdminProductVariant, useUpdateAdminProductVariant,
+} from "../../queries/useAdminProducts";
 
 const fieldClass = (hasError) => (hasError ? "field has-error" : "field");
 
-function VariantFormModal({ product, variant, onClose }) {
+function VariantFormModal({ product, variant, onClose, scope }) {
   const isEdit = Boolean(variant?.id);
-  const createMutation = useCreateProductVariant();
-  const updateMutation = useUpdateProductVariant();
+
+  // Gọi cả hai bộ hook để không vi phạm rules-of-hooks, sau đó chọn bộ theo phạm vi.
+  const sellerCreateMutation = useCreateProductVariant();
+  const sellerUpdateMutation = useUpdateProductVariant();
+  const adminCreateMutation = useCreateAdminProductVariant();
+  const adminUpdateMutation = useUpdateAdminProductVariant();
+
+  let createMutation = sellerCreateMutation;
+  let updateMutation = sellerUpdateMutation;
+  if (scope === "admin") {
+    createMutation = adminCreateMutation;
+    updateMutation = adminUpdateMutation;
+  }
 
   const {
     register, control, handleSubmit,
@@ -133,8 +147,14 @@ function VariantFormModal({ product, variant, onClose }) {
   );
 }
 
-function VariantDeleteModal({ product, variant, onClose }) {
-  const mutation = useDeleteProductVariant();
+function VariantDeleteModal({ product, variant, onClose, scope }) {
+  const sellerMutation = useDeleteProductVariant();
+  const adminMutation = useDeleteAdminProductVariant();
+
+  let mutation = sellerMutation;
+  if (scope === "admin") {
+    mutation = adminMutation;
+  }
   return (
     <Modal
       title="Xoá biến thể"
@@ -164,7 +184,7 @@ function VariantDeleteModal({ product, variant, onClose }) {
   );
 }
 
-export default function VariantManager({ product, disabled = false }) {
+export default function VariantManager({ product, disabled = false, scope = "seller" }) {
   const [editing, setEditing] = useState(null); // null | {} (tạo mới) | variant (sửa)
   const [deleting, setDeleting] = useState(null);
   const variants = product.variants ?? [];
@@ -240,10 +260,11 @@ export default function VariantManager({ product, disabled = false }) {
 
       {editing && (
         <VariantFormModal product={product} variant={editing.id ? editing : null}
-                          onClose={() => setEditing(null)} />
+                          scope={scope} onClose={() => setEditing(null)} />
       )}
       {deleting && (
-        <VariantDeleteModal product={product} variant={deleting} onClose={() => setDeleting(null)} />
+        <VariantDeleteModal product={product} variant={deleting}
+                            scope={scope} onClose={() => setDeleting(null)} />
       )}
     </section>
   );

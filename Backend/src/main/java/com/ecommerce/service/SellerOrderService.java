@@ -6,7 +6,6 @@ import com.ecommerce.dto.response.OrderSummaryResponse;
 import com.ecommerce.dto.response.PageResponse;
 import com.ecommerce.dto.response.SellerDashboardResponse;
 import com.ecommerce.entity.Order;
-import com.ecommerce.entity.OrderItem;
 import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.entity.Shop;
 import com.ecommerce.entity.ShopStatus;
@@ -15,7 +14,6 @@ import com.ecommerce.exception.AppException;
 import com.ecommerce.exception.ErrorCode;
 import com.ecommerce.repository.OrderRepository;
 import com.ecommerce.repository.ProductRepository;
-import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.ShopRepository;
 import com.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,9 +37,9 @@ public class SellerOrderService {
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final ProductRepository productRepository;
-    private final ProductVariantRepository variantRepository;
     private final OrderRepository orderRepository;
     private final OrderResponseMapper orderResponseMapper;
+    private final OrderLifecycleService orderLifecycleService;
 
     @Transactional(readOnly = true)
     public SellerDashboardResponse dashboard(String email) {
@@ -96,21 +94,8 @@ public class SellerOrderService {
     public OrderDetailResponse updateStatus(String email, int id, OrderStatusRequest request) {
         Shop shop = getApprovedShop(email);
         Order order = getOwnedOrder(shop, id);
-        OrderStatus next = request.getStatus();
-        if (!order.getStatus().canSellerMoveTo(next)) {
-            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
-        }
-
-        // Huỷ đơn trước khi giao hàng thì trả lại tồn kho đã trừ lúc checkout.
-        if (next == OrderStatus.CANCELLED) {
-            for (OrderItem item : order.getItems()) {
-                variantRepository.increaseStock(item.getVariantId(), item.getQuantity());
-            }
-        }
-
-        order.setStatus(next);
-        orderRepository.save(order);
-        return orderResponseMapper.toDetail(order);
+        Order updated = orderLifecycleService.updateStatus(order, request.getStatus());
+        return orderResponseMapper.toDetail(updated);
     }
 
     private Shop getApprovedShop(String email) {

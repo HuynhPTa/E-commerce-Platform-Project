@@ -41,6 +41,9 @@ export const SELLER_ORDER_ACTIONS = {
   CANCELLED: [],
 };
 
+// Admin can thiệp mọi đơn toàn sàn nhưng dùng chung luật chuyển trạng thái với người bán.
+export const ADMIN_ORDER_ACTIONS = SELLER_ORDER_ACTIONS;
+
 export const PAYMENT_METHOD_LABELS = {
   VNPAY: "VNPay",
   MOMO: "MoMo",

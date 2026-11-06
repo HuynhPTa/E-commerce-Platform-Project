@@ -1,0 +1,58 @@
+import {
+  Baby,
+  Bike,
+  BookOpen,
+  Camera,
+  Car,
+  Dumbbell,
+  Footprints,
+  Gamepad2,
+  Gift,
+  Headphones,
+  Heart,
+  House,
+  Laptop,
+  Monitor,
+  Package,
+  PawPrint,
+  Shirt,
+  ShoppingBag,
+  Smartphone,
+  Sofa,
+  Sparkles,
+  Tv,
+  Utensils,
+  Watch,
+} from "lucide-react";
+
+// Bảng này giới hạn các biểu tượng được phép dùng cho danh mục.
+// Nhờ vậy bundle không phải tải toàn bộ thư viện lucide-react.
+export const BIEU_TUONG_DANH_MUC = {
+  Smartphone: Smartphone,
+  Laptop: Laptop,
+  Shirt: Shirt,
+  ShoppingBag: ShoppingBag,
+  Footprints: Footprints,
+  Sofa: Sofa,
+  Sparkles: Sparkles,
+  BookOpen: BookOpen,
+  Dumbbell: Dumbbell,
+  Headphones: Headphones,
+  Monitor: Monitor,
+  Tv: Tv,
+  Watch: Watch,
+  Camera: Camera,
+  Gamepad2: Gamepad2,
+  Baby: Baby,
+  Car: Car,
+  Bike: Bike,
+  PawPrint: PawPrint,
+  Gift: Gift,
+  Utensils: Utensils,
+  Heart: Heart,
+  House: House,
+  Package: Package,
+};
+
+// Mảng này lưu tên các biểu tượng để hiển thị trong bộ chọn.
+export const TEN_CAC_BIEU_TUONG = Object.keys(BIEU_TUONG_DANH_MUC);

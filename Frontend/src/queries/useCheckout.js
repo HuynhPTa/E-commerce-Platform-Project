@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { checkout, fetchCheckoutResult } from '../api/checkout.api'
+import { checkout, createPaymentUrl, fetchCheckoutResult } from '../api/checkout.api'
 import { fetchCart } from '../api/cart.api'
 import { MOCK_CART } from './mockCart'
 
@@ -61,7 +61,6 @@ export function useCheckoutResult(checkoutId) {
 /**
  * Checkout KHÔNG optimistic: liên quan tiền và tồn kho, phải chờ BE xác nhận.
  * Thành công -> invalidate cache liên quan -> sang màn hình kết quả đọc lại từ BE.
- * Cổng thanh toán VNPay/MoMo (F13/F14) chưa làm; createPaymentUrl để sẵn cho bước sau.
  */
 export function useCheckout() {
   const qc = useQueryClient()
@@ -82,5 +81,19 @@ export function useCheckout() {
       })
     },
     // lỗi (vd 409 hết hàng): không điều hướng, trang tự hiển thị mutation.error
+  })
+}
+
+/**
+ * Tạo URL thanh toán VNPay/MoMo rồi chuyển cả trang sang cổng thanh toán.
+ * Không dùng điều hướng SPA vì đích đến là domain bên ngoài.
+ * Lỗi 503 (PAYMENT_NOT_CONFIGURED) do trang kết quả hiển thị, không giả lập thành công.
+ */
+export function useCreatePaymentUrl() {
+  return useMutation({
+    mutationFn: createPaymentUrl,
+    onSuccess: ({ redirectUrl }) => {
+      if (redirectUrl) window.location.assign(redirectUrl)
+    },
   })
 }

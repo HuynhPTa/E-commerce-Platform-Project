@@ -30,3 +30,17 @@ spring.security.oauth2.client.provider.facebook.authorization-uri=https://www.fa
 
 # Frontend URL (dùng để redirect sau khi đăng nhập Google/Facebook)
 app.frontend-url=http://localhost:5173
+
+# Cong thanh toan: de trong = chua cau hinh. Dat credential that trong
+# application-secrets.properties (da gitignore) hoac bien moi truong.
+payment.vnpay.tmn-code=${VNPAY_TMN_CODE:}
+payment.vnpay.hash-secret=${VNPAY_HASH_SECRET:}
+payment.vnpay.pay-url=${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+payment.vnpay.return-url=${VNPAY_RETURN_URL:http://localhost:8080/api/payments/vnpay/return}
+
+payment.momo.partner-code=${MOMO_PARTNER_CODE:}
+payment.momo.access-key=${MOMO_ACCESS_KEY:}
+payment.momo.secret-key=${MOMO_SECRET_KEY:}
+payment.momo.endpoint=${MOMO_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/create}
+payment.momo.return-url=${MOMO_RETURN_URL:http://localhost:8080/api/payments/momo/return}
+payment.momo.ipn-url=${MOMO_IPN_URL:http://localhost:8080/api/payments/momo/ipn}

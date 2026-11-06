@@ -2,10 +2,12 @@ package com.ecommerce.repository;
 
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -35,6 +37,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                             Pageable pageable);
 
     @EntityGraph(attributePaths = {"buyer", "checkoutSession"})
+    @Query("""
+            select o from Order o
+            where o.buyer.id = :buyerId
+              and (:status is null or o.status = :status)
+            """)
+    Page<Order> buyerSearch(@Param("buyerId") int buyerId,
+                            @Param("status") OrderStatus status,
+                            Pageable pageable);
+
+    @EntityGraph(attributePaths = {"buyer", "checkoutSession"})
     List<Order> findTop8ByOrderByCreatedAtDesc();
 
     @Query("select o.status, count(o) from Order o group by o.status")
@@ -45,7 +57,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("""
             select coalesce(sum(o.totalMinor), 0) from Order o
-            where o.status = :status and o.createdAt >= :from
+            where o.status = :status and o.completedAt >= :from
             """)
     long sumRevenueByStatusSince(@Param("status") OrderStatus status, @Param("from") LocalDateTime from);
 
@@ -84,7 +96,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("""
             select coalesce(sum(o.totalMinor), 0) from Order o
-            where o.shopId = :shopId and o.status = :status and o.createdAt >= :from
+            where o.shopId = :shopId and o.status = :status and o.completedAt >= :from
             """)
     long sumRevenueByShopIdAndStatusSince(@Param("shopId") int shopId,
                                           @Param("status") OrderStatus status,
@@ -99,9 +111,29 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("select o from Order o where o.id = :id")
     Optional<Order> findDetailById(@Param("id") int id);
 
+    /**
+     * Bản khoá của findDetailById. Luôn khoá phiên cha trước rồi mới khoá đơn
+     * để mọi luồng huỷ/giao hàng của cùng một phiên có cùng thứ tự khoá.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"buyer", "checkoutSession", "items"})
+    @Query("select o from Order o where o.id = :id")
+    Optional<Order> findDetailByIdForUpdate(@Param("id") int id);
+
     long countByShopId(int shopId);
 
     long countByShopIdAndStatus(int shopId, OrderStatus status);
 
     long countByStatus(OrderStatus status);
+
+    long countByBuyerId(int buyerId);
+
+    long countByBuyerIdAndStatus(int buyerId, OrderStatus status);
+
+    @Query("""
+            select coalesce(sum(o.totalMinor), 0) from Order o
+            where o.buyer.id = :buyerId and o.status = :status
+            """)
+    long sumRevenueByBuyerIdAndStatus(@Param("buyerId") int buyerId,
+                                      @Param("status") OrderStatus status);
 }

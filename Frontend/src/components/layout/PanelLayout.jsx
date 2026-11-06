@@ -1,6 +1,6 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Link, Outlet } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle, ShoppingBag } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Menu, ShoppingBag, X } from "lucide-react";
 import { useMe } from "../../queries/useMe";
 import { initials, displayName } from "../../lib/user";
 
@@ -8,11 +8,25 @@ import { initials, displayName } from "../../lib/user";
 // nav: [{ to, label, icon: Component, exact?, soon? }] hoặc { section: "Tiêu đề nhóm" }
 export default function PanelLayout({ brand, subtitle, nav, title }) {
   const { data: me } = useMe();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Drawer mobile: khoá cuộn nền khi menu đang mở
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <div className="panel-shell">
-      <aside className="panel-sidebar">
-        <Link to="/" className="panel-brand">
+      {menuOpen && (
+        <button className="panel-overlay" type="button" aria-label="Đóng menu" onClick={closeMenu} />
+      )}
+      <aside className={`panel-sidebar${menuOpen ? " open" : ""}`}>
+        <Link to="/" className="panel-brand" onClick={closeMenu}>
           <span className="site-logo-mark"><ShoppingBag size={18} /></span>
           <span>{brand}<small>{subtitle}</small></span>
         </Link>
@@ -28,7 +42,7 @@ export default function PanelLayout({ brand, subtitle, nav, title }) {
               );
             }
             return (
-              <Link key={item.to} to={item.to} params={item.params}
+              <Link key={item.to} to={item.to} params={item.params} onClick={closeMenu}
                     activeProps={{ className: "active" }} activeOptions={{ exact: !!item.exact }}>
                 <Icon size={18} /> {item.label}
               </Link>
@@ -36,12 +50,16 @@ export default function PanelLayout({ brand, subtitle, nav, title }) {
           })}
         </nav>
         <div className="panel-sidebar-footer">
-          <Link to="/"><ArrowLeft size={18} /> Về trang mua sắm</Link>
+          <Link to="/" onClick={closeMenu}><ArrowLeft size={18} /> Về trang mua sắm</Link>
         </div>
       </aside>
 
       <div className="panel-main">
         <header className="panel-topbar">
+          <button className="panel-menu-btn" type="button" onClick={() => setMenuOpen((v) => !v)}
+                  aria-label={menuOpen ? "Đóng menu" : "Mở menu"} aria-expanded={menuOpen}>
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
           <h1>{title}</h1>
           {me && (
             <div className="panel-user">

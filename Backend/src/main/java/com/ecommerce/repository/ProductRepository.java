@@ -10,12 +10,34 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
 
     // products.category_id đang lưu dạng chuỗi (id hoặc slug danh mục)
     long countByCategoryIdIn(Collection<String> categoryKeys);
+
+    long countByStatusIgnoreCase(String status);
+
+    @Query("select coalesce(sum(p.soldCount), 0) from Product p where upper(p.status) = upper(:status)")
+    long sumSoldCountByStatus(@Param("status") String status);
+
+    @Query("""
+            select count(distinct p.categoryId) from Product p
+            where upper(p.status) = upper(:status)
+              and p.categoryId is not null
+              and p.categoryId <> ''
+            """)
+    long countDistinctCategoryByStatus(@Param("status") String status);
+
+    @Query("""
+            select p.categoryId, count(p) from Product p
+            where upper(p.status) = upper(:status)
+              and p.categoryId is not null
+            group by p.categoryId
+            """)
+    List<Object[]> countGroupByCategoryIdAndStatus(@Param("status") String status);
 
     long countByShopIdAndStatusIgnoreCase(String shopId, String status);
 

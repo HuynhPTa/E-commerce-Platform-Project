@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@tanstack/react-router";
@@ -8,13 +9,16 @@ import { sellerProductSchema, sellerProductCreateSchema } from "../../schemas/se
 const fieldClass = (hasError) => (hasError ? "field has-error" : "field");
 
 // Dùng chung cho tạo mới (kèm biến thể đầu tiên) và sửa thông tin sản phẩm.
-export default function ProductForm({ mode, product, onSubmit, isPending, error, disabled = false }) {
+export default function ProductForm({
+  mode, product, onSubmit, isPending, error, disabled = false, basePath = "/seller/products",
+}) {
   const isCreate = mode === "create";
   const { data: categories = [], isLoading: categoriesLoading } = useCategoryFlat();
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(isCreate ? sellerProductCreateSchema : sellerProductSchema),
@@ -26,6 +30,21 @@ export default function ProductForm({ mode, product, onSubmit, isPending, error,
           categoryId: product.categoryId ?? "",
         },
   });
+
+  // Danh mục tải bất đồng bộ: lần render đầu có thể chưa có option khớp.
+  // Khi options sẵn sàng, gán lại giá trị ban đầu để select hiển thị đúng.
+  useEffect(() => {
+    if (isCreate) {
+      return;
+    }
+    if (categoriesLoading) {
+      return;
+    }
+    if (!product.categoryId) {
+      return;
+    }
+    setValue("categoryId", String(product.categoryId));
+  }, [isCreate, categoriesLoading, product.categoryId, setValue]);
 
   // Danh mục hiện tại có thể đã bị Admin xoá khỏi cây -> vẫn hiển thị để người bán biết
   const categoryMissing = !isCreate && product.categoryId
@@ -107,7 +126,7 @@ export default function ProductForm({ mode, product, onSubmit, isPending, error,
       )}
 
       <div className="row" style={{ justifyContent: "flex-end" }}>
-        <Link to="/seller/products" className="btn">Huỷ</Link>
+        <Link to={basePath} className="btn">Huỷ</Link>
         <button type="submit" className="btn btn-primary" disabled={isPending || disabled}>
           {isPending ? <LoaderCircle size={16} className="spin" /> : <Save size={16} />}
           {isCreate ? "Tạo sản phẩm" : "Lưu thay đổi"}

@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ShoppingBag, Search, ShoppingCart, ChevronDown, User, MapPin, Store, ShieldCheck, LogOut,
+  ShoppingBag, Search, ShoppingCart, ChevronDown, User, MapPin, ShieldCheck, LogOut,
+  Package,
 } from "lucide-react";
 import { useMe, hasToken } from "../../queries/useMe";
-import { useMyShop } from "../../queries/useShops";
 import { useLogout } from "../../queries/useAuth";
 import { useCategoryTree } from "../../queries/useCategories";
 import { fetchCart } from "../../api/cart.api";
@@ -15,7 +15,6 @@ import { initials } from "../../lib/user";
 function UserMenu({ me }) {
   const [open, setOpen] = useState(false);
   const ref = useRef();
-  const { data: shop } = useMyShop();
   const logout = useLogout();
   const navigate = useNavigate();
 
@@ -28,9 +27,6 @@ function UserMenu({ me }) {
   }, [open]);
 
   const go = () => setOpen(false);
-  const sellerLink = shop?.status === "APPROVED"
-    ? { to: "/seller", label: "Kênh người bán" }
-    : { to: "/seller/register", label: shop ? "Hồ sơ đăng ký shop" : "Đăng ký bán hàng" };
 
   return (
     <div className="user-menu" ref={ref}>
@@ -42,8 +38,8 @@ function UserMenu({ me }) {
       {open && (
         <div className="dropdown">
           <Link to="/profile" onClick={go}><User size={16} /> Hồ sơ của tôi</Link>
+          <Link to="/orders" onClick={go}><Package size={16} /> Đơn hàng của tôi</Link>
           <Link to="/addresses" onClick={go}><MapPin size={16} /> Địa chỉ nhận hàng</Link>
-          <Link to={sellerLink.to} onClick={go}><Store size={16} /> {sellerLink.label}</Link>
           {me.role === "ADMIN" && <Link to="/admin" onClick={go}><ShieldCheck size={16} /> Trang quản trị</Link>}
           <hr />
           <button onClick={() => { logout(); go(); navigate({ to: "/" }); }}><LogOut size={16} /> Đăng xuất</button>
@@ -75,7 +71,7 @@ export default function SiteHeader() {
         </Link>
 
         <form className="site-search" onSubmit={submitSearch} role="search">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm sản phẩm, thương hiệu và tên shop" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm sản phẩm hoặc thương hiệu" />
           <button type="submit" aria-label="Tìm kiếm"><Search size={18} /></button>
         </form>
 
@@ -101,8 +97,6 @@ export default function SiteHeader() {
         {tree.slice(0, 6).map((c) => (
           <Link key={c.id} to="/products" search={{ category: c.slug }}>{c.name}</Link>
         ))}
-        <span className="spacer" />
-        <Link to="/seller/register">Kênh người bán</Link>
       </div>
     </header>
   );

@@ -6,7 +6,7 @@ import java.util.Map;
 
 public record OrderDetailResponse(int id, int checkoutSessionId, int shopId, String shopName,
                                   int buyerId, String buyerName, String buyerEmail,
-                                  String status, String paymentMethod,
+                                  String status, String paymentMethod, String paymentStatus,
                                   Map<String, Object> shippingAddress,
                                   int subtotalMinor, int shippingFeeMinor, int totalMinor,
                                   LocalDateTime createdAt, LocalDateTime updatedAt,

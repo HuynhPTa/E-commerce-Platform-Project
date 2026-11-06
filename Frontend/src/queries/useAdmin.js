@@ -4,6 +4,7 @@ import {
   fetchAdminOrders,
   fetchAdminOrderDetail,
   fetchAdminUsers,
+  updateAdminOrderStatus,
   updateAdminUserStatus,
 } from "../api/admin.api";
 
@@ -55,6 +56,22 @@ export function useUpdateAdminUserStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY });
       queryClient.invalidateQueries({ queryKey: ADMIN_DASHBOARD_KEY });
+    },
+  });
+}
+
+export function useUpdateAdminOrderStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateAdminOrderStatus,
+    onSuccess: (order) => {
+      // Server trả chi tiết mới -> ghi thẳng vào cache để modal đổi trạng thái ngay
+      queryClient.setQueryData(adminOrderKey(order.id), order);
+      queryClient.invalidateQueries({ queryKey: ADMIN_ORDERS_KEY });
+      queryClient.invalidateQueries({ queryKey: ADMIN_DASHBOARD_KEY });
+      // COMPLETED làm tăng sold_count; CANCELLED làm tăng tồn kho
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 }

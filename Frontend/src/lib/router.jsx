@@ -77,67 +77,27 @@ const checkoutResultRoute = createRoute({
   component: lazy(() => import("../routes/checkout-result.jsx")),
 });
 
+// Đơn hàng của người mua (F15): danh sách + chi tiết, chỉ xem đơn của chính mình.
+const ordersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/orders/index.jsx")),
+});
+
+const orderDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/orders/$orderId",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("../routes/orders/$orderId.jsx")),
+});
+
 // Trang công khai của shop: /shops/12?sort=best_selling&page=2
 const shopRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/shops/$shopId",
   validateSearch: shopProductsSearchSchema,
   component: lazy(() => import("../routes/shops/$shopId.jsx")),
-});
-
-// Form đăng ký mở shop — dùng layout người mua (người dùng chưa có shop)
-const sellerRegisterRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/seller/register",
-  beforeLoad: requireAuth,
-  component: lazy(() => import("../routes/seller/register.jsx")),
-});
-
-// Tầng 1B — Code splitting: bundle seller và admin tách hẳn khỏi bundle buyer.
-// Kiểm chứng thật (không phải chỉ import lazy() cho có): mở Network tab sau khi
-// build, xác nhận có file seller-*.js / admin-*.js riêng, không nằm chung main.js.
-const sellerLayoutRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/seller",
-  beforeLoad: requireAuth,
-  component: lazy(() => import("../routes/seller/layout.jsx")),
-});
-
-const sellerIndexRoute = createRoute({
-  getParentRoute: () => sellerLayoutRoute,
-  path: "/",
-  component: lazy(() => import("../routes/seller/dashboard.jsx")),
-});
-
-// Job 3 — quản lý sản phẩm cho Seller (lazy load giống dashboard)
-const sellerProductsRoute = createRoute({
-  getParentRoute: () => sellerLayoutRoute,
-  path: "/products",
-  component: lazy(() => import("../routes/seller/products/index.jsx")),
-});
-
-const sellerProductNewRoute = createRoute({
-  getParentRoute: () => sellerLayoutRoute,
-  path: "/products/new",
-  component: lazy(() => import("../routes/seller/products/new.jsx")),
-});
-
-const sellerProductDetailRoute = createRoute({
-  getParentRoute: () => sellerLayoutRoute,
-  path: "/products/$productId",
-  component: lazy(() => import("../routes/seller/products/$productId.jsx")),
-});
-
-const sellerOrdersRoute = createRoute({
-  getParentRoute: () => sellerLayoutRoute,
-  path: "/orders",
-  component: lazy(() => import("../routes/seller/orders.jsx")),
-});
-
-const sellerSettingsRoute = createRoute({
-  getParentRoute: () => sellerLayoutRoute,
-  path: "/settings",
-  component: lazy(() => import("../routes/seller/settings.jsx")),
 });
 
 // Admin: layout (sidebar + kiểm tra role) bọc các trang con qua <Outlet/>
@@ -160,10 +120,23 @@ const adminCategoriesRoute = createRoute({
   component: lazy(() => import("../routes/admin/categories.jsx")),
 });
 
-const adminShopsRoute = createRoute({
+// Quản trị catalog của website single-brand.
+const adminProductsRoute = createRoute({
   getParentRoute: () => adminLayoutRoute,
-  path: "/shops",
-  component: lazy(() => import("../routes/admin/shops.jsx")),
+  path: "/products",
+  component: lazy(() => import("../routes/admin/products/index.jsx")),
+});
+
+const adminProductNewRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/products/new",
+  component: lazy(() => import("../routes/admin/products/new.jsx")),
+});
+
+const adminProductDetailRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/products/$productId",
+  component: lazy(() => import("../routes/admin/products/$productId.jsx")),
 });
 
 const adminOrdersRoute = createRoute({
@@ -202,20 +175,15 @@ const routeTree = rootRoute.addChildren([
   cartRoute,
   checkoutRoute,
   checkoutResultRoute,
+  ordersRoute,
+  orderDetailRoute,
   shopRoute,
-  sellerRegisterRoute,
-  sellerLayoutRoute.addChildren([
-    sellerIndexRoute,
-    sellerProductsRoute,
-    sellerProductNewRoute,
-    sellerProductDetailRoute,
-    sellerOrdersRoute,
-    sellerSettingsRoute,
-  ]),
   adminLayoutRoute.addChildren([
     adminIndexRoute,
     adminCategoriesRoute,
-    adminShopsRoute,
+    adminProductsRoute,
+    adminProductNewRoute,
+    adminProductDetailRoute,
     adminOrdersRoute,
     adminUsersRoute,
   ]),

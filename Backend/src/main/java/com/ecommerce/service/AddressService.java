@@ -8,6 +8,7 @@ import com.ecommerce.exception.AppException;
 import com.ecommerce.exception.ErrorCode;
 import com.ecommerce.repository.AddressRepository;
 import com.ecommerce.repository.UserRepository;
+import com.ecommerce.util.ShippingPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,12 +45,14 @@ public class AddressService {
     @Transactional
     public AddressResponse create(String email, AddressRequest req) {
         User user = currentUserForUpdate(email);
+        String province = validateProvince(req.getProvince());
         boolean isFirst = !addressRepository.existsByUserId(user.getId());
         Address a = Address.builder()
                 .user(user)
                 .recipientName(req.getRecipientName().trim())
                 .phone(req.getPhone().trim())
                 .fullAddress(req.getFullAddress().trim())
+                .province(province)
                 .defaultAddress(isFirst)          // địa chỉ đầu tiên tự là mặc định
                 .build();
         return toResponse(addressRepository.save(a));
@@ -62,7 +65,15 @@ public class AddressService {
         a.setRecipientName(req.getRecipientName().trim());
         a.setPhone(req.getPhone().trim());
         a.setFullAddress(req.getFullAddress().trim());
+        a.setProvince(validateProvince(req.getProvince()));
         return toResponse(addressRepository.save(a));
+    }
+
+    private String validateProvince(String province) {
+        if (ShippingPolicy.isSupported(province) == false) {
+            throw new AppException(ErrorCode.INVALID_INPUT);
+        }
+        return ShippingPolicy.normalize(province);
     }
 
     @Transactional
@@ -100,6 +111,7 @@ public class AddressService {
                 .recipientName(a.getRecipientName())
                 .phone(a.getPhone())
                 .fullAddress(a.getFullAddress())
+                .province(a.getProvince())
                 .defaultAddress(a.isDefaultAddress())
                 .build();
     }

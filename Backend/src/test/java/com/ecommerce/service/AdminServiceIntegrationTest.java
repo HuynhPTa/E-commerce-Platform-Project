@@ -1,16 +1,24 @@
 package com.ecommerce.service;
 
+import com.ecommerce.dto.request.AdminUserRequest;
 import com.ecommerce.dto.request.CheckoutRequest;
+import com.ecommerce.dto.request.OrderStatusRequest;
 import com.ecommerce.dto.request.UserStatusRequest;
+import com.ecommerce.dto.response.AdminCategoryStatsResponse;
 import com.ecommerce.dto.response.AdminDashboardResponse;
+import com.ecommerce.dto.response.AdminOrderStatsResponse;
+import com.ecommerce.dto.response.AdminProductStatsResponse;
 import com.ecommerce.dto.response.AdminUserResponse;
+import com.ecommerce.dto.response.AdminUserStatsResponse;
 import com.ecommerce.dto.response.OrderDetailResponse;
 import com.ecommerce.dto.response.OrderSummaryResponse;
 import com.ecommerce.dto.response.PageResponse;
 import com.ecommerce.entity.CartItem;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderStatus;
+import com.ecommerce.entity.Payment;
 import com.ecommerce.entity.PaymentMethod;
+import com.ecommerce.entity.PaymentStatus;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.ProductVariant;
 import com.ecommerce.entity.Shop;
@@ -19,8 +27,10 @@ import com.ecommerce.entity.User;
 import com.ecommerce.exception.AppException;
 import com.ecommerce.exception.ErrorCode;
 import com.ecommerce.repository.CartItemRepository;
+import com.ecommerce.repository.CategoryRepository;
 import com.ecommerce.repository.CheckoutSessionRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.PaymentRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.ReviewRepository;
@@ -34,6 +44,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +73,10 @@ class AdminServiceIntegrationTest {
     @Autowired
     private CheckoutService checkoutService;
     @Autowired
+    private CategoryService categoryService;
+    @Autowired
+    private SellerProductService sellerProductService;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private ShopRepository shopRepository;
@@ -72,9 +87,13 @@ class AdminServiceIntegrationTest {
     @Autowired
     private CartItemRepository cartRepository;
     @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
     private CheckoutSessionRepository sessionRepository;
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
     @Autowired
     private ReviewRepository reviewRepository;
     @Autowired
@@ -83,10 +102,12 @@ class AdminServiceIntegrationTest {
     @BeforeEach
     void cleanDatabase() {
         reviewRepository.deleteAll();
+        paymentRepository.deleteAll();
         orderRepository.deleteAll();
         sessionRepository.deleteAll();
         cartRepository.deleteAll();
         productRepository.deleteAll();
+        categoryRepository.deleteAll();
         shopRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -140,10 +161,60 @@ class AdminServiceIntegrationTest {
         assertThat(dashboard.totalOrders()).isEqualTo(1);
         assertThat(dashboard.completedOrders()).isEqualTo(1);
         assertThat(dashboard.revenueMinor()).isEqualTo(500_000);
+        assertThat(dashboard.shippingOrders()).isZero();
+        assertThat(dashboard.deliveredOrders()).isZero();
+        assertThat(dashboard.processingOrders()).isZero();
+        assertThat(dashboard.averageOrderValueMinor()).isEqualTo(500_000);
+        assertThat(dashboard.completionRate()).isEqualTo(100.0);
         assertThat(dashboard.ordersByStatus().get("COMPLETED")).isEqualTo(1);
         assertThat(dashboard.recentOrders()).hasSize(1);
         assertThat(dashboard.recentOrders().get(0).id()).isEqualTo(fixture.orderId());
         assertThat(admin.getId()).isPositive();
+    }
+
+    @Test
+    @DisplayName("Số liệu thống kê từng module phản ánh đúng dữ liệu")
+    void thongKeTungModule() {
+        Fixture fixture = createOrder();
+        createAdmin(ADMIN_EMAIL);
+
+        AdminOrderStatsResponse orderStats = adminOrderService.stats();
+        assertThat(orderStats.totalOrders()).isEqualTo(1);
+        assertThat(orderStats.pendingOrders()).isEqualTo(1);
+        assertThat(orderStats.processingOrders()).isEqualTo(1);
+        assertThat(orderStats.revenueMinor()).isZero();
+        assertThat(orderStats.cancellationRate()).isZero();
+        assertThat(orderStats.ordersByStatus().get("PENDING")).isEqualTo(1);
+
+        Order order = orderRepository.findById(fixture.orderId()).orElseThrow();
+        order.setStatus(OrderStatus.COMPLETED);
+        orderRepository.save(order);
+
+        AdminOrderStatsResponse completedStats = adminOrderService.stats();
+        assertThat(completedStats.completedOrders()).isEqualTo(1);
+        assertThat(completedStats.revenueMinor()).isEqualTo(500_000);
+        assertThat(completedStats.averageOrderValueMinor()).isEqualTo(500_000);
+        assertThat(completedStats.completionRate()).isEqualTo(100.0);
+
+        AdminProductStatsResponse productStats = sellerProductService.statsForAdmin();
+        assertThat(productStats.activeProducts()).isEqualTo(1);
+        assertThat(productStats.deletedProducts()).isZero();
+        assertThat(productStats.totalVariants()).isEqualTo(1);
+        assertThat(productStats.totalStock()).isEqualTo(3);
+        assertThat(productStats.lowStockVariants()).isEqualTo(1);
+        assertThat(productStats.outOfStockVariants()).isZero();
+
+        AdminUserStatsResponse userStats = adminUserService.stats();
+        assertThat(userStats.totalUsers()).isEqualTo(3);
+        assertThat(userStats.activeUsers()).isEqualTo(3);
+        assertThat(userStats.lockedUsers()).isZero();
+        assertThat(userStats.adminUsers()).isEqualTo(1);
+        assertThat(userStats.buyerUsers()).isEqualTo(2);
+
+        AdminCategoryStatsResponse categoryStats = categoryService.stats();
+        assertThat(categoryStats.totalCategories()).isZero();
+        assertThat(categoryStats.categoriesWithProducts()).isZero();
+        assertThat(categoryStats.emptyCategories()).isZero();
     }
 
     @Test
@@ -209,12 +280,144 @@ class AdminServiceIntegrationTest {
                         ex -> assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.CANNOT_LOCK_ADMIN));
     }
 
+    @Test
+    @DisplayName("Admin cập nhật trạng thái đơn theo đúng luồng và thấy trong danh sách lọc")
+    void adminCapNhatTrangThaiDon() {
+        Fixture fixture = createOrder();
+
+        OrderDetailResponse confirmed = adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.CONFIRMED));
+        assertThat(confirmed.status()).isEqualTo("CONFIRMED");
+
+        PageResponse<OrderSummaryResponse> filtered = adminOrderService.list(
+                OrderStatus.CONFIRMED, null, 1, 10);
+        assertThat(filtered.totalItems()).isEqualTo(1);
+        assertThat(filtered.items()).singleElement()
+                .satisfies(order -> assertThat(order.status()).isEqualTo("CONFIRMED"));
+
+        assertThat(adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.SHIPPING)).status()).isEqualTo("SHIPPING");
+        assertThat(adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.DELIVERED)).status()).isEqualTo("DELIVERED");
+        assertThat(adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.COMPLETED)).status()).isEqualTo("COMPLETED");
+    }
+
+    @Test
+    @DisplayName("Admin huỷ đơn trước khi giao sẽ hoàn lại tồn kho")
+    void adminHuyDonHoanKho() {
+        Fixture fixture = createOrder();
+        assertThat(stock(fixture.variantId())).isEqualTo(3); // 5 - 2
+
+        adminOrderService.updateStatus(fixture.orderId(), statusRequest(OrderStatus.CONFIRMED));
+        OrderDetailResponse cancelled = adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.CANCELLED));
+
+        assertThat(cancelled.status()).isEqualTo("CANCELLED");
+        assertThat(stock(fixture.variantId())).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("Admin không được huỷ đơn online đã thanh toán")
+    void adminKhongHuyDonDaThanhToan() {
+        Fixture fixture = createOrder();
+        Order order = orderRepository.findById(fixture.orderId()).orElseThrow();
+
+        Payment payment = new Payment();
+        payment.setCheckoutSession(order.getCheckoutSession());
+        payment.setProvider(PaymentMethod.VNPAY);
+        payment.setAmountMinor(order.getTotalMinor());
+        payment.setStatus(PaymentStatus.SUCCEEDED);
+        paymentRepository.save(payment);
+
+        assertThatThrownBy(() -> adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.CANCELLED)))
+                .isInstanceOfSatisfying(AppException.class,
+                        ex -> assertThat(ex.getErrorCode())
+                                .isEqualTo(ErrorCode.ORDER_ALREADY_PAID));
+
+        assertThat(adminOrderService.detail(fixture.orderId()).status()).isEqualTo("PENDING");
+        assertThat(stock(fixture.variantId())).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Admin không tạo được tài khoản quản trị ở trạng thái khoá")
+    void adminKhongTaoAdminBiKhoa() {
+        AdminUserRequest request = AdminUserRequest.builder()
+                .email("new-admin@test.local")
+                .password("Admin@123")
+                .firstName("New")
+                .lastName("Admin")
+                .role("ADMIN")
+                .status(0)
+                .build();
+
+        assertThatThrownBy(() -> adminUserService.create(request))
+                .isInstanceOfSatisfying(AppException.class,
+                        ex -> assertThat(ex.getErrorCode())
+                                .isEqualTo(ErrorCode.CANNOT_LOCK_ADMIN));
+        assertThat(userRepository.findByEmail("new-admin@test.local")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Doanh thu hôm nay tính theo completedAt, không theo createdAt")
+    void doanhThuHomNayTheoNgayHoanTat() {
+        Fixture fixture = createOrder();
+        LocalDateTime now = LocalDateTime.now();
+
+        // Đơn tạo từ 2 ngày trước nhưng hoàn tất hôm nay vẫn được tính.
+        jdbcTemplate.update("UPDATE orders SET status = 'COMPLETED', created_at = ?, "
+                        + "completed_at = ? WHERE id = ?",
+                now.minusDays(2), now, fixture.orderId());
+
+        AdminOrderStatsResponse stats = adminOrderService.stats();
+        assertThat(stats.todayRevenueMinor()).isEqualTo(500_000);
+        assertThat(stats.todayOrders()).isZero();
+
+        // Đơn tạo hôm nay nhưng hoàn tất từ 2 ngày trước thì không được tính.
+        jdbcTemplate.update("UPDATE orders SET created_at = ?, completed_at = ? WHERE id = ?",
+                now, now.minusDays(2), fixture.orderId());
+
+        AdminOrderStatsResponse after = adminOrderService.stats();
+        assertThat(after.todayRevenueMinor()).isZero();
+        assertThat(after.todayOrders()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Admin không thể chuyển trạng thái sai và đơn không tồn tại bị chặn")
+    void adminChanChuyenTrangThaiSai() {
+        Fixture fixture = createOrder();
+
+        assertThatThrownBy(() -> adminOrderService.updateStatus(fixture.orderId(),
+                statusRequest(OrderStatus.COMPLETED)))
+                .isInstanceOfSatisfying(AppException.class,
+                        ex -> assertThat(ex.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_STATUS_TRANSITION));
+        assertThat(adminOrderService.detail(fixture.orderId()).status()).isEqualTo("PENDING");
+        assertThat(stock(fixture.variantId())).isEqualTo(3);
+
+        assertThatThrownBy(() -> adminOrderService.updateStatus(999_999,
+                statusRequest(OrderStatus.CONFIRMED)))
+                .isInstanceOfSatisfying(AppException.class,
+                        ex -> assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.ORDER_NOT_EXISTED));
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private UserStatusRequest statusRequest(int status) {
         UserStatusRequest request = new UserStatusRequest();
         request.setStatus(status);
         return request;
+    }
+
+    private OrderStatusRequest statusRequest(OrderStatus status) {
+        OrderStatusRequest request = new OrderStatusRequest();
+        request.setStatus(status);
+        return request;
+    }
+
+    private int stock(int variantId) {
+        return variantRepository.findById(variantId).orElseThrow().getStockQuantity();
     }
 
     private Fixture createOrder() {
@@ -227,7 +430,7 @@ class AdminServiceIntegrationTest {
 
         int orderId = checkoutService.checkout(buyer.getId(), checkoutRequest(cartItem.getId()))
                 .getOrders().get(0).getOrderId();
-        return new Fixture(orderId, buyer.getId());
+        return new Fixture(orderId, buyer.getId(), variant.getId());
     }
 
     private User createAdmin(String email) {
@@ -295,11 +498,12 @@ class AdminServiceIntegrationTest {
                 .recipientName("Nguyễn Văn Test")
                 .phone("0901234567")
                 .fullAddress("123 Đường Test, Phường 1, Quận 1, TP.HCM")
+                .province("Hồ Chí Minh")
                 .paymentMethod(PaymentMethod.VNPAY)
                 .cartItemIds(List.of(cartItemId))
                 .build();
     }
 
-    private record Fixture(int orderId, int buyerId) {
+    private record Fixture(int orderId, int buyerId, int variantId) {
     }
 }

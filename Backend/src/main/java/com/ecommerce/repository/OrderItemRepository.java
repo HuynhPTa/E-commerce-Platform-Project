@@ -2,6 +2,7 @@ package com.ecommerce.repository;
 
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.entity.OrderStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -65,4 +66,13 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
             group by oi.order.id
             """)
     List<Object[]> countByOrderIds(@Param("orderIds") Collection<Integer> orderIds);
+
+    /** Lấy các dòng hàng của nhiều đơn trong 1 query để dựng preview cho danh sách. */
+    @EntityGraph(attributePaths = "order")
+    @Query("""
+            select oi from OrderItem oi
+            where oi.order.id in :orderIds
+            order by oi.order.id asc, oi.id asc
+            """)
+    List<OrderItem> findWithOrderByOrderIdIn(@Param("orderIds") Collection<Integer> orderIds);
 }

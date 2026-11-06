@@ -1,17 +1,14 @@
 // File này nằm trong "admin" bundle riêng — chỉ tải khi user thật sự vào /admin.
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowRight, CalendarDays, CircleCheck, ClipboardList, Clock, FolderTree, Inbox,
-  LoaderCircle, Package, Store, TriangleAlert, Users, Wallet,
+  ArrowRight, CalendarDays, ClipboardList, FolderTree, Inbox,
+  LoaderCircle, Package, TriangleAlert, Users, Wallet,
 } from "lucide-react";
 import { useAdminDashboard } from "../../queries/useAdmin";
-import { useAdminShops } from "../../queries/useShops";
 import OrderStatusBadge from "../../components/order/OrderStatusBadge";
 import { ORDER_STATUS_KEYS, orderStatusMeta } from "../../components/order/orderStatus";
-import ShopStatusBadge from "../../components/shop/ShopStatusBadge";
 import { formatDate } from "../../lib/errors";
 import { formatVnd } from "../../lib/format";
-import { assetUrl, onImageError } from "../../lib/assetUrl";
 
 const TONE_COLOR = {
   warning: "var(--warning)",
@@ -57,7 +54,6 @@ function StatusBreakdown({ counts, total }) {
 
 export default function AdminDashboard() {
   const { data, isLoading, isError } = useAdminDashboard();
-  const { data: pending } = useAdminShops({ status: "PENDING", page: 1, size: 5 });
 
   if (isLoading) return <div className="center-box"><LoaderCircle className="spin" /> Đang tải tổng quan…</div>;
   if (isError) {
@@ -78,10 +74,8 @@ export default function AdminDashboard() {
         <Stat icon={Users} color="#7c3aed" bg="#f3e8ff"
               value={data.totalUsers} label="Người dùng"
               sub={`${data.activeUsers} đang hoạt động`} />
-        <Stat icon={Clock} color="var(--warning)" bg="var(--warning-soft)"
-              value={data.pendingShops} label="Shop chờ duyệt" sub={`Tổng ${data.totalShops} shop`} />
         <Stat icon={Package} color="#0891b2" bg="#e0f2fe"
-              value={data.totalProducts} label="Sản phẩm trên sàn" />
+              value={data.totalProducts} label="Sản phẩm" />
       </div>
 
       <div className="dashboard-columns">
@@ -96,13 +90,12 @@ export default function AdminDashboard() {
             <div className="table-wrap">
               <table className="table">
                 <thead>
-                  <tr><th>Mã đơn</th><th>Shop</th><th>Người mua</th><th>Tổng</th><th>Trạng thái</th></tr>
+                  <tr><th>Mã đơn</th><th>Người mua</th><th>Tổng</th><th>Trạng thái</th></tr>
                 </thead>
                 <tbody>
                   {data.recentOrders?.map((order) => (
                     <tr key={order.id}>
                       <td><strong>#{order.id}</strong><div className="cell-sub">{formatDate(order.createdAt)}</div></td>
-                      <td>{order.shopName || `#${order.shopId}`}</td>
                       <td>{order.buyerName}<div className="cell-sub">{order.buyerEmail}</div></td>
                       <td>{formatVnd(order.totalMinor)}</td>
                       <td><OrderStatusBadge status={order.status} /></td>
@@ -125,41 +118,10 @@ export default function AdminDashboard() {
         </section>
       </div>
 
-      <section className="card" style={{ marginTop: 20 }}>
-        <div className="card-header">
-          <h3>Shop mới chờ duyệt</h3>
-          <Link to="/admin/shops" className="btn btn-sm btn-outline">Xem tất cả <ArrowRight size={14} /></Link>
-        </div>
-        {pending?.items.length === 0 ? (
-          <div className="center-box"><CircleCheck size={40} /> Không có shop nào đang chờ duyệt.</div>
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead><tr><th>Shop</th><th>Chủ shop</th><th>Ngày gửi</th><th>Trạng thái</th></tr></thead>
-              <tbody>
-                {pending?.items.map((s) => (
-                  <tr key={s.id}>
-                    <td><div className="cell-main">
-                      {s.logoUrl
-                        ? <img className="logo-thumb" src={assetUrl(s.logoUrl)} alt="" onError={onImageError} />
-                        : <span className="logo-thumb">{s.name[0]}</span>}
-                      <strong>{s.name}</strong>
-                    </div></td>
-                    <td>{s.ownerName}<div className="cell-sub">{s.ownerEmail}</div></td>
-                    <td>{formatDate(s.createdAt)}</td>
-                    <td><ShopStatusBadge status={s.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
       <div className="row muted" style={{ marginTop: 16, fontSize: 12 }}>
         <FolderTree size={14} /> Doanh thu chỉ tính các đơn ở trạng thái Hoàn tất.
         <span className="spacer" />
-        <Store size={14} /> Duyệt shop mới để người bán bắt đầu đăng sản phẩm.
+        <Package size={14} /> Quản lý sản phẩm và đơn hàng tại menu bên trái.
       </div>
     </div>
   );

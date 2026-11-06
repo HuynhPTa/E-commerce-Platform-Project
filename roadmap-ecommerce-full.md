@@ -295,15 +295,15 @@ Frontend/src/
 
 ### 6.7 Checkout (tách đơn theo shop)
 - **Backend**: `POST /api/checkout` — logic quan trọng nhất: 1 giỏ hàng có sản phẩm từ N shop → tạo `checkout_session` + N `orders` (mỗi order 1 shop) trong **cùng 1 `@Transactional`**, đồng thời trừ `stock_quantity` (check `>= quantity` trong cùng câu lệnh update để tránh race condition).
-- **Frontend**: `routes/checkout.jsx` — form địa chỉ/thanh toán dùng React Hook Form + Zod (≥4 field); mutation **không optimistic** (liên quan tiền) — chờ response thật rồi mới điều hướng sang `redirectUrl` VNPay/Momo.
+- **Frontend**: `routes/checkout.jsx` — form địa chỉ/thanh toán dùng React Hook Form + Zod (≥4 field); mutation **không optimistic** (liên quan tiền) — chờ response thật rồi chuyển sang `/checkout/result`. Trang kết quả hiển thị trạng thái phiên + nút "Thanh toán VNPay/MoMo" gọi `POST /api/payments/create-url`; nếu cổng chưa cấu hình, đơn vẫn được tạo và API trả **503 `PAYMENT_NOT_CONFIGURED`**, không giả lập thanh toán thành công.
 
 ### 6.8 Payment (VNPay/Momo sandbox)
-- **Backend**: `PaymentGateway` interface với 2 implementation (`VnPayProvider`, `MomoProvider`); `POST` tạo URL thanh toán, endpoint IPN/callback riêng cho mỗi provider verify chữ ký (VNPay: HMAC-SHA512; Momo: HMAC-SHA256); phải **idempotent** (IPN gọi lặp không cộng tiền/trừ kho 2 lần); sau verify thành công → cập nhật `payments.status`, `orders.status=CONFIRMED`.
-- **Frontend**: chọn provider ở checkout → redirect sang cổng thanh toán → trang `payment/return` đọc kết quả **từ BE** (gọi lại `useOrderQuery`), không tin param trên URL.
+- **Backend**: `PaymentProvider` interface với 2 implementation (`VnPayProvider` — HMAC-SHA512, `MomoProvider` — HMAC-SHA256 và gọi API tạo URL). Endpoint: `POST /api/payments/create-url`, `GET /api/payments/vnpay/{return,ipn}`, `GET /api/payments/momo/return`, `POST /api/payments/momo/ipn`. Callback/IPN verify chữ ký, đối chiếu `amount_minor`, khóa payment bằng `PESSIMISTIC_WRITE` và **idempotent**: gọi lặp không cộng tiền/trừ kho lần hai; thành công cập nhật `payments.status=SUCCEEDED`, `checkout_sessions.status=PAID`, `orders.status: PENDING → CONFIRMED`.
+- **Frontend**: chọn provider ở checkout → trang `/checkout/result` hiển thị `paymentStatus` và nút thanh toán; bấm mới gọi API tạo URL rồi redirect sang cổng thanh toán. Sau khi provider redirect về, trang đọc lại kết quả từ `GET /api/checkout/{id}`, không tin param trên URL.
 
 ### 6.9 Order tracking
-- **Backend**: `GET /api/orders` (buyer xem đơn của mình), `PATCH /api/orders/{id}/status` (seller cập nhật trạng thái: CONFIRMED→SHIPPING→DELIVERED).
-- **Frontend**: `routes/orders/` — danh sách + chi tiết đơn, hiển thị timeline trạng thái (`components/order/OrderTimeline`).
+- **Backend**: `GET /api/orders` (buyer xem đơn của mình, lọc `status`, phân trang), `GET /api/orders/{id}` (kiểm tra ownership, trả 404 nếu không phải đơn của mình); Seller cập nhật trạng thái qua `PATCH /api/seller/orders/{id}/status`; Admin cập nhật toàn sàn qua `PATCH /api/admin/orders/{id}/status`.
+- **Frontend**: `routes/orders/index.jsx` + `routes/orders/$orderId.jsx` — danh sách theo tab trạng thái, chi tiết đơn, timeline trạng thái (`components/order/OrderTimeline.jsx`), nút thanh toán lại khi đơn chưa thanh toán.
 
 ### 6.10 Review
 - **Backend**: `POST /api/reviews` — chỉ tạo được nếu `order_item` liên quan có đơn ở trạng thái `COMPLETED` (kiểm tra qua `order_item_id`, UNIQUE — chặn review khống/review nhiều lần).
@@ -314,8 +314,8 @@ Frontend/src/
 - **Frontend**: `routes/seller/dashboard.jsx`, `orders.jsx`, `settings.jsx` — bundle riêng, lazy-load, tách khỏi bundle Buyer. Cài đặt shop dùng `PUT /api/shops/me`, đổi tên shop đồng bộ sang sản phẩm.
 
 ### 6.12 Admin
-- **Backend**: duyệt shop (`PATCH /api/admin/shops/{id}/status`), quản lý category, `GET /api/admin/dashboard`, `GET /api/admin/orders` + chi tiết, `GET /api/admin/users` và `PATCH /api/admin/users/{id}/status` (khoá/mở khoá, chặn tự khoá và khoá tài khoản ADMIN).
-- **Frontend**: `routes/admin/dashboard.jsx`, `shops.jsx`, `categories.jsx`, `orders.jsx`, `users.jsx` — bundle riêng, lazy-load.
+- **Backend**: duyệt shop (`PATCH /api/admin/shops/{id}/status`), quản lý category, `GET /api/admin/dashboard`, `GET /api/admin/orders` + chi tiết + `PATCH /api/admin/orders/{id}/status` (cập nhật trạng thái, huỷ hoàn kho), `GET /api/admin/users` và `PATCH /api/admin/users/{id}/status` (khoá/mở khoá, chặn tự khoá và khoá tài khoản ADMIN).
+- **Frontend**: `routes/admin/dashboard.jsx`, `shops.jsx`, `categories.jsx`, `orders.jsx` (xem chi tiết và xử lý trạng thái), `users.jsx` — bundle riêng, lazy-load.
 
 ---
 
@@ -346,24 +346,24 @@ Frontend/src/
 | F10 | `cart_items` — optimistic mutation | FE+BE | ✅ Xong (optimistic update + rollback khi lỗi) |
 | F11 | `addresses` | FE+BE | ✅ Xong (CRUD + địa chỉ mặc định) |
 | F12 | `checkout_sessions`+`orders`+`order_items` trong `@Transactional` | BE | ✅ Xong — transaction tách đơn theo shop, trừ kho, 11/11 test pass; E2E checkout 2 shop thành công |
-| F13 | VNPay sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `VNPAY`, chưa tạo URL/callback thật |
-| F14 | Momo sandbox | BE+FE | ⬜ Chưa — checkout mới lưu lựa chọn `MOMO`, chưa tạo URL/callback thật |
-| F15 | Theo dõi & cập nhật trạng thái đơn | FE+BE | 🔶 Một phần — Seller cập nhật trạng thái, Admin xem toàn sàn; chưa có trang đơn của Buyer |
+| F13 | VNPay sandbox | BE+FE | ✅ Xong — tạo URL, return/IPN, verify HMAC-SHA512, idempotent; 7 test payment (gồm callback lặp, sai chữ ký, sai amount). Chưa test cổng thật vì chưa có credential sandbox. |
+| F14 | Momo sandbox | BE+FE | ✅ Xong — tạo URL qua API MoMo, return/IPN verify HMAC-SHA256, idempotent; test callback MoMo. Chưa test cổng thật vì chưa có credential sandbox. |
+| F15 | Theo dõi & cập nhật trạng thái đơn | FE+BE | ✅ Xong — Buyer có danh sách + chi tiết đơn, timeline; Seller/Admin cập nhật trạng thái theo luồng chung, huỷ hoàn kho. |
 | F16 | `reviews` | FE+BE | ✅ Xong — POST /api/reviews + eligibility + danh sách; rating_avg/count tự tính; UI chọn sao/form/phân trang; 9 test review |
 | F17 | Seller Dashboard | FE+BE | ✅ Xong — doanh thu/đơn theo trạng thái/sản phẩm, quản lý đơn, cài đặt shop |
-| F18 | Admin | FE+BE | ✅ Xong — dashboard tổng hợp, đơn toàn sàn, người dùng, shop/category |
+| F18 | Admin | FE+BE | ✅ Xong — dashboard tổng hợp, đơn toàn sàn (xem, lọc, cập nhật trạng thái), người dùng, shop/category |
 | F19 | Index DB | BE | ✅ Xong — FULLTEXT `products.name`, B-tree shop/category/status-created, trigger `sold_count`; migration V11–V14 |
 | F20 | Code splitting/Profiler | FE | ✅ Đã tách bundle seller/admin |
-| F21 | Test checkout nhiều shop + webhook | FE+BE | 🔶 Một phần — integration test checkout nhiều shop 11/11 pass; webhook chờ F13/F14 |
-| F22 | Build production, polish, demo | FE+BE | ⬜ Chưa (đã có seed dữ liệu mẫu) |
+| F21 | Test checkout nhiều shop + webhook | FE+BE | ✅ Xong — **41/41 test pass**: 11 checkout nhiều shop, 7 payment (URL/IPN/idempotency/sai chữ ký/sai amount/ownership/method), 2 buyer orders, 9 review, 8 admin (gồm cập nhật trạng thái/hoàn kho), 4 seller |
+| F22 | Build production, polish, demo | FE+BE | 🔶 Một phần — `npm run lint` + `npm run build` pass; còn thiếu credential sandbox để demo thanh toán/OAuth2 thật |
 | F23 | Trang chủ: khối sản phẩm đề xuất (dùng API F9, sort `best_selling`) | FE | ✅ Xong — 8 sản phẩm, có link xem tất cả |
 
 **Việc tiếp theo** (theo thứ tự ưu tiên):
-1. Làm F13/F14 (VNPay/Momo sandbox) kèm callback/IPN idempotent, rồi bổ sung test webhook cho F21.
-2. Bổ sung trang đơn hàng của Buyer để hoàn tất F15 (timeline trạng thái).
-3. Cấu hình credential Google/Facebook thật và kiểm thử OAuth2 end-to-end; sau đó làm F22 (build production + demo).
+1. Cấu hình credential VNPay/MoMo sandbox thật và kiểm thử một giao dịch end-to-end (tạo URL → thanh toán → IPN/return → đơn `CONFIRMED`).
+2. Cấu hình Google/Facebook thật và kiểm thử OAuth2 end-to-end.
+3. Hoàn thiện F22: quay video demo luồng mua hàng + thanh toán + seller xử lý đơn; có thể bổ sung trang quản lý payment cho Admin (ngoài roadmap 8 tuần).
 
-### 8.1 Kết quả kiểm chứng gần nhất (2026-10-24)
+### 8.1 Kết quả kiểm chứng gần nhất (2026-11-05)
 
 - Đã merge đủ 4 gói vào `dev-huynh`: A `532ee23`, B `617c1e1`, C `a632955`, D `6a848a8`.
 - Backend merged chạy `mvn test`: **11/11 test pass** (gồm integration test checkout tách đơn theo shop).
@@ -371,7 +371,7 @@ Frontend/src/
   - Seller tạo sản phẩm mới, upload ảnh PNG; API sản phẩm trả `images.length=1`, URL ảnh trả HTTP 200.
   - Buyer thêm 2 sản phẩm từ 2 shop, checkout tổng **548.000 ₫**; tạo checkout session 2 order, tồn kho mỗi variant giảm 10 → 9, giỏ hàng rỗng sau khi đặt.
   - Trang kết quả đọc dữ liệu từ `GET /api/checkout/{id}` (không đọc số liệu từ URL); kiểm tra ownership trả đúng 404/401 cho session không thuộc buyer.
-- Seed dữ liệu mẫu: `node scripts/seed-demo.mjs` tạo 3 shop, 6 sản phẩm có ảnh, 4 tài khoản demo; chạy lại không tạo bản ghi trùng.
+- Seed dữ liệu mẫu: `node scripts/seed-demo.mjs` tạo 3 shop đã duyệt + 1 shop chờ duyệt, 12 sản phẩm có ảnh, 2 buyer, giỏ hàng 3 shop, 10 đơn demo (9 buyer + 1 buyer2) đủ 6 trạng thái, payment VNPay/MoMo và review; phần đơn/payment/review dùng SQL local qua Docker, chạy lại không tạo bản ghi trùng.
 - Trang chủ có khối **Sản phẩm đề xuất** (F23): lấy 8 sản phẩm từ API F9 với `sort=best_selling`, hiển thị bằng `ProductCard`, có trạng thái loading/error/rỗng và link xem tất cả.
 - Công việc 8 — Review (F16/F19):
   - `mvn clean test`: **20/20 pass** (11 checkout + 9 review), gồm các case đơn chưa COMPLETED, món của người khác, trùng `order_item`, trùng sản phẩm trong cùng đơn và phân trang.
@@ -384,12 +384,19 @@ Frontend/src/
   - Giỏ hàng: thêm → sửa số lượng → xoá qua API thật; checkout tạo order shop 10 rồi seller xử lý đến `COMPLETED`.
   - Cài đặt shop `PUT /api/shops/me` giữ nguyên trạng thái duyệt và đồng bộ tên shop sang sản phẩm.
   - OAuth2 trả 302 sang Google/Facebook với redirect URI `/login/oauth2/code/{provider}`; chưa thể đăng nhập thật vì credential còn là dummy.
-  - `npm run build` pass; ESLint các file mới pass (còn 1 lỗi `set-state-in-effect` có sẵn ở `routes/products/index.jsx`).
+  - `npm run build` pass; ESLint pass (đã sửa lỗi `set-state-in-effect` ở `routes/products/index.jsx` bằng draft state).
+- Thanh toán & đơn hàng Buyer (2026-11-05):
+  - `mvn test`: **38/38 pass** (11 checkout + 7 payment + 2 buyer order + 9 review + 5 admin + 4 seller).
+  - E2E MySQL + backend thật với credential VNPay giả: **30/30 kiểm tra pass** — tạo URL, IPN hợp lệ, IPN gọi lặp idempotent, sai chữ ký trả 97, sai amount bị chặn, MoMo chưa cấu hình trả 503/1180, sai provider trả 1183, Buyer xem/lọc đơn và bị chặn 404 khi xem đơn người khác.
+  - `npm run lint` pass; `npm run build` pass (2.319 module, 768 ms).
+  - Trang `/orders` + `/orders/{id}` hiển thị danh sách, timeline, địa chỉ snapshot, trạng thái thanh toán và nút thanh toán lại.
+- Chuẩn bị DB demo (2026-11-05): backup `ecommerce_db` trước khi reset; reset giữ schema + 36 categories; chạy `seed-demo.mjs` rồi `seed-large-demo.mjs` tạo **300 sản phẩm, 18 shop (15 APPROVED, 3 PENDING), 29 tài khoản, 230 đơn, 229 payment, 66 review, 300 ảnh**. Kiểm tra toàn vẹn: 0 lỗi variant, tổng đơn/session/payment, `sold_count`, `rating_count`. Admin dashboard hiển thị 230 đơn / 45 chờ xác nhận / 47 hoàn tất / 3 shop chờ duyệt; `buyer.demo` có 29 đơn (3 trang), seller Tech Zone có 24 sản phẩm / 19 đơn. API trả 300 sản phẩm (15 trang, size 20); UI `/products` 25 trang (size 12).
 
 ### 8.2 Lỗi tồn đọng ngoài phạm vi 4 gói
 
-- `AuthenticationService.generateToken` hardcode `.claim("scope", "USER")`. Mọi tài khoản admin nhận JWT `scope=USER`, nên `PATCH /api/admin/shops/{id}/status` và các API admin trả **403**. E2E và seed hiện workaround bằng SQL local để duyệt shop; cần sửa JWT để admin dùng được API thật.
-- Chưa tích hợp cổng thanh toán thật (F13/F14), nên trạng thái thanh toán trong checkout result chỉ là `PENDING`/chờ thanh toán.
+- Chưa có credential sandbox VNPay/MoMo và Google/Facebook, nên chưa thể kiểm thử giao dịch thanh toán/OAuth2 thật. Test payment dùng credential giả trên H2, không gọi mạng.
+- `Payment` chưa lưu mã tham chiếu `orderId`/`vnp_TxnRef` của từng lần thử. Nếu callback của một lần thử cũ đến muộn, payment mới có thể bị đánh dấu `FAILED`. Trong phạm vi đồ án, rủi ro này được chấp nhận; hướng khắc phục là thêm cột `provider_reference` và đối chiếu trước khi đổi trạng thái.
+- Trang kết quả thanh toán chưa tự động polling trạng thái; người dùng cần tải lại trang sau khi cổng thanh toán redirect về (return URL đã redirect về đúng trang kết quả).
 
 
 

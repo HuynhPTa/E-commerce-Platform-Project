@@ -14,24 +14,33 @@ export default function ProductsPage() {
   const search = useSearch({ from: "/products" });
   const navigate = useNavigate({ from: "/products" });
 
-  const [qInput, setQInput] = useState(search.q ?? "");
-  const [minPriceInput, setMinPriceInput] = useState(search.minPrice ?? "");
-  const [maxPriceInput, setMaxPriceInput] = useState(search.maxPrice ?? "");
+  const searchQ = search.q ?? "";
+  const searchMinPrice = search.minPrice ?? "";
+  const searchMaxPrice = search.maxPrice ?? "";
+
+  // Giữ giá trị người dùng đang gõ, nhưng vẫn nhận thay đổi khi back/forward đổi URL.
+  // Draft ghi lại giá trị gốc trên URL; nếu URL đã khác gốc thì bỏ draft và lấy lại từ URL.
+  const [qDraft, setQDraft] = useState(null);
+  const [minPriceDraft, setMinPriceDraft] = useState(null);
+  const [maxPriceDraft, setMaxPriceDraft] = useState(null);
+
+  const qInput = qDraft?.base === searchQ ? qDraft.value : searchQ;
+  const minPriceInput = minPriceDraft?.base === searchMinPrice
+    ? minPriceDraft.value
+    : searchMinPrice;
+  const maxPriceInput = maxPriceDraft?.base === searchMaxPrice
+    ? maxPriceDraft.value
+    : searchMaxPrice;
+
   const debouncedQ = useDebounce(qInput, 400); // client state thuần, từ hooks/
 
   const filters = { ...search, q: debouncedQ };
 
   useEffect(() => {
-    setQInput(search.q ?? "");
-    setMinPriceInput(search.minPrice ?? "");
-    setMaxPriceInput(search.maxPrice ?? "");
-  }, [search.maxPrice, search.minPrice, search.q]);
-
-  useEffect(() => {
-    if (debouncedQ !== (search.q ?? "")) {
+    if (debouncedQ !== searchQ) {
       navigate({ search: (prev) => ({ ...prev, q: debouncedQ || undefined, page: 1 }) });
     }
-  }, [debouncedQ, navigate, search.q]);
+  }, [debouncedQ, navigate, searchQ]);
 
   // Danh mục chọn ở sidebar nằm trên URL (?category=slug); BE lọc gồm cả danh mục con.
   // Đường dẫn danh mục (Điện thoại & Phụ kiện > Tai nghe) dùng cho breadcrumb.
@@ -79,15 +88,29 @@ export default function ProductsPage() {
         <form className="product-filters card card-body" onSubmit={applyFilters}>
           <label>
             Tìm sản phẩm
-            <input value={qInput} onChange={(e) => setQInput(e.target.value)} placeholder="Tên sản phẩm…" />
+            <input
+              value={qInput}
+              onChange={(e) => setQDraft({ base: searchQ, value: e.target.value })}
+              placeholder="Tên sản phẩm…"
+            />
           </label>
           <label>
             Giá từ (₫)
-            <input type="number" min="0" value={minPriceInput} onChange={(e) => setMinPriceInput(e.target.value)} />
+            <input
+              type="number"
+              min="0"
+              value={minPriceInput}
+              onChange={(e) => setMinPriceDraft({ base: searchMinPrice, value: e.target.value })}
+            />
           </label>
           <label>
             Giá đến (₫)
-            <input type="number" min="0" value={maxPriceInput} onChange={(e) => setMaxPriceInput(e.target.value)} />
+            <input
+              type="number"
+              min="0"
+              value={maxPriceInput}
+              onChange={(e) => setMaxPriceDraft({ base: searchMaxPrice, value: e.target.value })}
+            />
           </label>
           <button type="submit" className="btn-primary">Lọc sản phẩm</button>
         </form>

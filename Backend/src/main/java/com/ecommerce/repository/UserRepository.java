@@ -50,4 +50,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long countByIsDelete(int isDelete);
 
     long countByIsDeleteAndStatus(int isDelete, int status);
+
+    @Query("""
+            select count(u) from User u
+            where u.isDelete = 0
+              and (u.admin = true or upper(u.role) = 'ADMIN')
+            """)
+    long countAdminUsers();
 }

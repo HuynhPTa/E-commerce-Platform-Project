@@ -2,12 +2,14 @@ import { useState } from "react";
 import {
   ChevronLeft, ChevronRight, Eye, Inbox, LoaderCircle, Search, TriangleAlert,
 } from "lucide-react";
-import { useAdminDashboard, useAdminOrderDetail, useAdminOrders } from "../../queries/useAdmin";
+import { useAdminDashboard, useAdminOrderDetail, useAdminOrders, useUpdateAdminOrderStatus } from "../../queries/useAdmin";
 import { useDebounce } from "../../hooks/useDebounce";
 import OrderStatusBadge from "../../components/order/OrderStatusBadge";
-import { ORDER_STATUS_TABS, PAYMENT_METHOD_LABELS } from "../../components/order/orderStatus";
+import {
+  ADMIN_ORDER_ACTIONS, ORDER_STATUS_TABS, PAYMENT_METHOD_LABELS,
+} from "../../components/order/orderStatus";
 import OrderDetailModal from "../../components/order/OrderDetailModal";
-import { formatDate } from "../../lib/errors";
+import { errMsg, formatDate } from "../../lib/errors";
 import { formatVnd } from "../../lib/format";
 
 export default function AdminOrdersPage() {
@@ -15,6 +17,7 @@ export default function AdminOrdersPage() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState(null);
+  const [confirmStatus, setConfirmStatus] = useState(null);
   const q = useDebounce(keyword.trim(), 400);
 
   const { data: dashboard } = useAdminDashboard(); // dùng lại cache cho số đếm trên tab
@@ -25,11 +28,53 @@ export default function AdminOrdersPage() {
     size: 10,
   });
   const detailQuery = useAdminOrderDetail(detailId);
+  const mutation = useUpdateAdminOrderStatus();
 
   const changeTab = (key) => { setTab(key); setPage(1); };
   const tabCount = (key) => key === "ALL"
     ? dashboard?.totalOrders ?? 0
     : dashboard?.ordersByStatus?.[key] ?? 0;
+
+  const closeDetail = () => {
+    setDetailId(null);
+    setConfirmStatus(null);
+    mutation.reset();
+  };
+
+  const updateStatus = (orderId, status) => {
+    mutation.mutate({ orderId, status }, {
+      onSuccess: () => setConfirmStatus(null),
+    });
+  };
+
+  const order = detailQuery.data;
+  const actions = order ? (ADMIN_ORDER_ACTIONS[order.status] ?? []) : [];
+  const footer = order ? (
+    confirmStatus ? (
+      <>
+        <span className="muted" style={{ marginRight: "auto" }}>
+          Huỷ đơn #{order.id}? Hàng sẽ được hoàn lại kho.
+        </span>
+        <button onClick={() => setConfirmStatus(null)} disabled={mutation.isPending}>Không</button>
+        <button className="btn-danger" disabled={mutation.isPending}
+                onClick={() => updateStatus(order.id, confirmStatus)}>
+          {mutation.isPending ? <LoaderCircle size={16} className="spin" /> : null} Xác nhận huỷ
+        </button>
+      </>
+    ) : (
+      <>
+        <button className="btn" onClick={closeDetail}>Đóng</button>
+        {actions.map((action) => (
+          <button key={action.status} className={action.className} disabled={mutation.isPending}
+                  onClick={() => action.confirm
+                    ? setConfirmStatus(action.status)
+                    : updateStatus(order.id, action.status)}>
+            {action.label}
+          </button>
+        ))}
+      </>
+    )
+  ) : <button className="btn" onClick={closeDetail}>Đóng</button>;
 
   return (
     <section className="card">
@@ -46,7 +91,7 @@ export default function AdminOrdersPage() {
           <Search size={16} className="muted" />
           <input value={keyword}
                  onChange={(e) => { setKeyword(e.target.value); setPage(1); }}
-                 placeholder="Tìm theo mã đơn, email/người mua hoặc tên shop…" />
+                 placeholder="Tìm theo mã đơn, email hoặc tên người mua…" />
         </div>
         {isFetching && !isLoading && <LoaderCircle size={16} className="spin muted" />}
       </div>
@@ -67,7 +112,7 @@ export default function AdminOrdersPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Mã đơn</th><th>Shop</th><th>Người mua</th><th>Số món</th>
+                  <th>Mã đơn</th><th>Người mua</th><th>Số món</th>
                   <th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Ngày đặt</th>
                   <th style={{ textAlign: "right" }}>Chi tiết</th>
                 </tr>
@@ -76,7 +121,6 @@ export default function AdminOrdersPage() {
                 {data.items.map((order) => (
                   <tr key={order.id}>
                     <td><strong>#{order.id}</strong></td>
-                    <td>{order.shopName || `#${order.shopId}`}</td>
                     <td>{order.buyerName}<div className="cell-sub">{order.buyerEmail}</div></td>
                     <td>{order.itemCount}</td>
                     <td><strong>{formatVnd(order.totalMinor)}</strong></td>
@@ -85,8 +129,9 @@ export default function AdminOrdersPage() {
                     <td>{formatDate(order.createdAt)}</td>
                     <td>
                       <div className="actions">
-                        <button className="btn-sm btn-ghost" title="Xem chi tiết" onClick={() => setDetailId(order.id)}>
-                          <Eye size={15} />
+                        <button className="btn-sm btn-ghost" title="Xem và xử lý đơn"
+                                onClick={() => { mutation.reset(); setDetailId(order.id); }}>
+                          <Eye size={15} /> Chi tiết
                         </button>
                       </div>
                     </td>
@@ -109,12 +154,17 @@ export default function AdminOrdersPage() {
 
       {detailId != null && (
         <OrderDetailModal
-          order={detailQuery.data}
+          order={order}
           isLoading={detailQuery.isLoading}
           isError={detailQuery.isError}
           error={detailQuery.error}
-          onClose={() => setDetailId(null)}
-          footer={<button className="btn" onClick={() => setDetailId(null)}>Đóng</button>}
+          onClose={closeDetail}
+          footer={footer}
+          notice={mutation.isError && (
+            <div className="alert alert-danger">
+              <TriangleAlert size={18} /><div>{errMsg(mutation.error)}</div>
+            </div>
+          )}
         />
       )}
     </section>

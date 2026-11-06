@@ -42,4 +42,7 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     List<Shop> findByOwnerIdIn(Collection<Integer> ownerIds);
 
     long countByStatus(ShopStatus status);
+
+    // Shop chính thức của website single-brand: shop APPROVED có id nhỏ nhất.
+    Optional<Shop> findFirstByStatusOrderByIdAsc(ShopStatus status);
 }

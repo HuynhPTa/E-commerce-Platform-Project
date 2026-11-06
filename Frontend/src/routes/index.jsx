@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, LayoutGrid, Sparkles, Store } from "lucide-react";
+import { ArrowRight, LayoutGrid, Sparkles } from "lucide-react";
 import { useCategoryTree } from "../queries/useCategories";
 import { useProductsQuery } from "../queries/useProducts";
 import CategoryIcon from "../components/category/CategoryIcon";
@@ -19,12 +19,9 @@ export default function HomePage() {
       <section className="hero">
         <div>
           <h1>Siêu sale 10.10</h1>
-          <p>Hàng triệu sản phẩm chính hãng từ các shop uy tín trên MarketHub.</p>
+          <p>Sản phẩm chính hãng, giá tốt tại MarketHub.</p>
           <Link to="/products" className="btn">Mua ngay <ArrowRight size={16} /></Link>
         </div>
-        <Link to="/seller/register" className="btn btn-outline" style={{ background: "transparent", color: "#fff", borderColor: "rgba(255,255,255,.7)" }}>
-          <Store size={16} /> Mở shop miễn phí
-        </Link>
       </section>
 
       <section className="card">

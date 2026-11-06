@@ -56,6 +56,9 @@ public enum ErrorCode {
     ORDER_NOT_EXISTED(1170, "Đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
     CANNOT_MODIFY_SELF(1171, "Bạn không thể thay đổi trạng thái tài khoản của chính mình", HttpStatus.BAD_REQUEST),
     CANNOT_LOCK_ADMIN(1172, "Không thể khoá tài khoản quản trị viên", HttpStatus.BAD_REQUEST),
+    ORDER_ALREADY_PAID(1173, "Đơn hàng đã thanh toán, vui lòng liên hệ hỗ trợ để huỷ", HttpStatus.BAD_REQUEST),
+    CANNOT_DELETE_ADMIN(1174, "Không thể xoá tài khoản quản trị viên", HttpStatus.BAD_REQUEST),
+    CANNOT_DEMOTE_LAST_ADMIN(1175, "Không thể hạ quyền quản trị viên cuối cùng", HttpStatus.BAD_REQUEST),
 
     // --- Review Module (Công việc 8, dải 1160-1169) ---
     REVIEW_ORDER_ITEM_NOT_FOUND(1160, "Không tìm thấy món hàng cần đánh giá", HttpStatus.NOT_FOUND),
@@ -87,6 +90,17 @@ public enum ErrorCode {
     PRODUCT_IMAGE_INVALID_TYPE(1108, "Chỉ chấp nhận file ảnh JPEG, PNG, WEBP hoặc GIF", HttpStatus.BAD_REQUEST),
     PRODUCT_IMAGE_TOO_LARGE(1109, "Ảnh vượt quá dung lượng cho phép (5 MB)", HttpStatus.BAD_REQUEST),
     PRODUCT_IMAGE_UPLOAD_FAILED(1110, "Lưu ảnh thất bại, vui lòng thử lại", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // --- Payment Module (dải 1180-1199) ---
+    PAYMENT_NOT_CONFIGURED(1180, "Cổng thanh toán chưa được cấu hình", HttpStatus.SERVICE_UNAVAILABLE),
+    PAYMENT_NOT_FOUND(1181, "Không tìm thấy giao dịch thanh toán", HttpStatus.NOT_FOUND),
+    PAYMENT_ALREADY_COMPLETED(1182, "Giao dịch đã thanh toán thành công", HttpStatus.CONFLICT),
+    PAYMENT_METHOD_MISMATCH(1183, "Phương thức thanh toán không khớp với phiên thanh toán", HttpStatus.BAD_REQUEST),
+    PAYMENT_INVALID_SIGNATURE(1184, "Chữ ký thanh toán không hợp lệ", HttpStatus.BAD_REQUEST),
+    PAYMENT_AMOUNT_MISMATCH(1185, "Số tiền thanh toán không khớp", HttpStatus.BAD_REQUEST),
+    PAYMENT_PROVIDER_ERROR(1186, "Cổng thanh toán đang gặp lỗi, vui lòng thử lại", HttpStatus.BAD_GATEWAY),
+    PAYMENT_SESSION_NOT_PAYABLE(1187, "Phiên thanh toán không còn khả dụng", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_REQUIRED(1188, "Đơn hàng thanh toán khi nhận hàng không cần tạo giao dịch", HttpStatus.BAD_REQUEST),
 
     UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
 

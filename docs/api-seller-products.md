@@ -1,5 +1,7 @@
 # Hợp đồng API — Seller Products (Job 3, Backend)
 
+> **Cập nhật cho mô hình single-brand:** Admin dùng bộ endpoint tương đương dưới `/api/admin/products` (xem `docs/web-ban-hang-chuc-nang-va-api.md`, mục 6.8). Hợp đồng request/response giữ nguyên; khác biệt duy nhất là Admin không cần sở hữu shop, xem/sửa được sản phẩm của mọi shop cũ, và sản phẩm mới được gán về shop chính thức (shop `APPROVED` id nhỏ nhất). Các endpoint `/api/seller/products` bên dưới chỉ còn để tương thích, không dùng cho tính năng mới.
+
 Tài liệu này chốt hợp đồng giữa gói **A (Backend)** và gói **B (Frontend)** cho Công việc 3
 (Product + Variant + Ảnh). Bản cuối cùng do gói A commit trước khi code.
 

@@ -18,6 +18,11 @@ export async function fetchAdminOrderDetail(orderId) {
   return data.result; // OrderDetailResponse
 }
 
+export async function updateAdminOrderStatus({ orderId, status }) {
+  const { data } = await apiClient.patch(`/admin/orders/${orderId}/status`, { status });
+  return data.result; // OrderDetailResponse
+}
+
 // params: { role, status, q, page, size }
 export async function fetchAdminUsers(params) {
   const { data } = await apiClient.get("/admin/users", { params });

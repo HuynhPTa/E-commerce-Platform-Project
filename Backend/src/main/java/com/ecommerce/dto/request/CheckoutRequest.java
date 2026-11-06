@@ -25,9 +25,20 @@ public class CheckoutRequest {
     @Size(max = 500, message = "Địa chỉ tối đa 500 ký tự")
     String fullAddress;
 
+    @NotBlank(message = "Vui lòng chọn tỉnh/thành phố")
+    @Size(max = 80, message = "Tỉnh/thành phố tối đa 80 ký tự")
+    String province;
+
     @NotNull(message = "Vui lòng chọn cổng thanh toán")
     PaymentMethod paymentMethod;
 
     /** Không bắt buộc: rỗng/null = thanh toán toàn bộ giỏ hàng. */
     List<Integer> cartItemIds;
+
+    /**
+     * Khoá chống tạo trùng đơn khi người dùng bấm đặt hàng nhiều lần.
+     * Không bắt buộc với client cũ; nếu có thì phải ngắn gọn và duy nhất mỗi lượt đặt.
+     */
+    @Size(max = 64, message = "Khoá chống trùng tối đa 64 ký tự")
+    String idempotencyKey;
 }

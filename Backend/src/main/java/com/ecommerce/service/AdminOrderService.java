@@ -1,5 +1,7 @@
 package com.ecommerce.service;
 
+import com.ecommerce.dto.request.OrderStatusRequest;
+import com.ecommerce.dto.response.AdminOrderStatsResponse;
 import com.ecommerce.dto.response.OrderDetailResponse;
 import com.ecommerce.dto.response.OrderSummaryResponse;
 import com.ecommerce.dto.response.PageResponse;
@@ -15,7 +17,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +29,7 @@ public class AdminOrderService {
 
     private final OrderRepository orderRepository;
     private final OrderResponseMapper orderResponseMapper;
+    private final OrderLifecycleService orderLifecycleService;
 
     @Transactional(readOnly = true)
     public PageResponse<OrderSummaryResponse> list(OrderStatus status, String q, int page, int size) {
@@ -40,10 +46,65 @@ public class AdminOrderService {
     }
 
     @Transactional(readOnly = true)
+    public AdminOrderStatsResponse stats() {
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        Map<String, Long> ordersByStatus = AdminDashboardService.statusCounts(
+                orderRepository.countGroupByStatus());
+
+        long totalOrders = orderRepository.count();
+        long pendingOrders = countStatus(ordersByStatus, OrderStatus.PENDING);
+        long confirmedOrders = countStatus(ordersByStatus, OrderStatus.CONFIRMED);
+        long shippingOrders = countStatus(ordersByStatus, OrderStatus.SHIPPING);
+        long deliveredOrders = countStatus(ordersByStatus, OrderStatus.DELIVERED);
+        long completedOrders = countStatus(ordersByStatus, OrderStatus.COMPLETED);
+        long cancelledOrders = countStatus(ordersByStatus, OrderStatus.CANCELLED);
+        long processingOrders = pendingOrders + confirmedOrders + shippingOrders;
+
+        long revenueMinor = orderRepository.sumRevenueByStatus(OrderStatus.COMPLETED);
+        long todayOrders = orderRepository.countByCreatedAtGreaterThanEqual(startOfToday);
+        long todayRevenueMinor = orderRepository.sumRevenueByStatusSince(
+                OrderStatus.COMPLETED, startOfToday);
+        long averageOrderValueMinor = 0;
+        if (completedOrders > 0) {
+            averageOrderValueMinor = revenueMinor / completedOrders;
+        }
+
+        return new AdminOrderStatsResponse(totalOrders, pendingOrders, confirmedOrders,
+                shippingOrders, deliveredOrders, completedOrders, cancelledOrders,
+                processingOrders, revenueMinor, todayOrders, todayRevenueMinor,
+                averageOrderValueMinor, percentage(completedOrders, totalOrders),
+                percentage(cancelledOrders, totalOrders), ordersByStatus);
+    }
+
+    @Transactional(readOnly = true)
     public OrderDetailResponse detail(int id) {
         Order order = orderRepository.findDetailById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
         return orderResponseMapper.toDetail(order);
+    }
+
+    // Admin dùng chung luồng trạng thái với người bán nhưng không giới hạn theo shop.
+    @Transactional
+    public OrderDetailResponse updateStatus(int id, OrderStatusRequest request) {
+        Order order = orderRepository.findDetailById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        Order updated = orderLifecycleService.updateStatus(order, request.getStatus());
+        return orderResponseMapper.toDetail(updated);
+    }
+
+    private static long countStatus(Map<String, Long> counts, OrderStatus status) {
+        Long value = counts.get(status.name());
+        if (value == null) {
+            return 0;
+        }
+        return value;
+    }
+
+    private static double percentage(long part, long total) {
+        if (total == 0) {
+            return 0;
+        }
+        return Math.round(part * 1000.0 / total) / 10.0;
     }
 
     static Integer parseId(String keyword) {

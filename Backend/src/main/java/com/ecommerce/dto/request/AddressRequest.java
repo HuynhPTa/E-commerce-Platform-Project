@@ -21,4 +21,8 @@ public class AddressRequest {
     @NotBlank(message = "Địa chỉ không được để trống")
     @Size(max = 500, message = "Địa chỉ tối đa 500 ký tự")
     String fullAddress;
+
+    @NotBlank(message = "Vui lòng chọn tỉnh/thành phố")
+    @Size(max = 80, message = "Tỉnh/thành phố tối đa 80 ký tự")
+    String province;
 }

@@ -43,6 +43,8 @@ public class SecurityConfig {
             "/api/auth/register", "/api/auth/login", "/api/auth/introspect",
             "/api/auth/refresh", "/api/auth/login/google",
             "/api/payment/vn-pay-callback",
+            "/api/payments/vnpay/return", "/api/payments/vnpay/ipn",
+            "/api/payments/momo/return", "/api/payments/momo/ipn",
             "/ws/info"
             // Các endpoint /api/hotels/**, /api/images/** trong bản cũ có vẻ là code
             // sót từ project hotel-booking, thêm lại (có dấu "/" đầu) nếu thật sự cần.

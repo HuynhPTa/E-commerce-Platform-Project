@@ -19,6 +19,7 @@ import com.ecommerce.exception.ErrorCode;
 import com.ecommerce.repository.CartItemRepository;
 import com.ecommerce.repository.CheckoutSessionRepository;
 import com.ecommerce.repository.OrderRepository;
+import com.ecommerce.repository.PaymentRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.ProductVariantRepository;
 import com.ecommerce.repository.ReviewRepository;
@@ -69,11 +70,14 @@ class SellerOrderServiceIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
+    private PaymentRepository paymentRepository;
+    @Autowired
     private ReviewRepository reviewRepository;
 
     @BeforeEach
     void cleanDatabase() {
         reviewRepository.deleteAll();
+        paymentRepository.deleteAll();
         orderRepository.deleteAll();
         sessionRepository.deleteAll();
         cartRepository.deleteAll();
@@ -226,6 +230,7 @@ class SellerOrderServiceIntegrationTest {
                 .recipientName("Nguyễn Văn Test")
                 .phone("0901234567")
                 .fullAddress("123 Đường Test, Phường 1, Quận 1, TP.HCM")
+                .province("Hồ Chí Minh")
                 .paymentMethod(PaymentMethod.VNPAY)
                 .cartItemIds(List.of(cartItemId))
                 .build();

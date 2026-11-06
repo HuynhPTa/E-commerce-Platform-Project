@@ -9,10 +9,16 @@
  * phần còn thiếu (variant, ảnh, địa chỉ) thay vì tạo bản ghi trùng. Nếu DB còn
  * bản ghi ảnh nhưng file upload đã bị xoá, script upload lại ảnh demo.
  *
+ * Phần đơn hàng/payment/review được seed bằng SQL local vì API không có endpoint
+ * tạo lịch sử giao dịch. Chỉ dùng cho môi trường dev.
+ *
  * Lưu ý: shop được duyệt qua API Admin; nếu JWT admin hiện bị lỗi scope=USER (403)
  * thì script tự fallback sang SQL local qua Docker. Fallback chỉ dành cho môi trường dev.
  */
 import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
 
 const API_BASE = process.env.API_BASE ?? "http://localhost:8080/api";
@@ -29,6 +35,11 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "Admin@123";
 const MYSQL_CONTAINER = process.env.MYSQL_CONTAINER ?? "ecommerce-mysql";
 const MYSQL_DATABASE = process.env.MYSQL_DATABASE ?? "ecommerce_db";
 const MYSQL_ROOT_PASSWORD = process.env.MYSQL_ROOT_PASSWORD ?? "";
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const DEMO_ORDERS_SQL = resolve(
+  SCRIPT_DIR,
+  "../Backend/src/main/resources/db/seed/demo-seed.sql",
+);
 
 const SELLERS = [
   {
@@ -280,6 +291,40 @@ function approveShopViaSql(shopId) {
   if (result.status !== 0) {
     throw new Error(`Duyệt shop #${shopId} bằng SQL thất bại: ${(result.stderr || "").trim()}`);
   }
+}
+
+function applyDemoOrdersSql() {
+  if (!existsSync(DEMO_ORDERS_SQL)) {
+    warnings.push(`Không thấy file seed đơn hàng: ${DEMO_ORDERS_SQL}`);
+    return false;
+  }
+
+  const args = [
+    "exec",
+    "-i",
+    MYSQL_CONTAINER,
+    "mysql",
+    "-uroot",
+    "--default-character-set=utf8mb4",
+  ];
+  if (MYSQL_ROOT_PASSWORD) args.push(`-p${MYSQL_ROOT_PASSWORD}`);
+  args.push(MYSQL_DATABASE);
+
+  const result = spawnSync("docker", args, {
+    input: readFileSync(DEMO_ORDERS_SQL),
+    encoding: "utf8",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  if (result.error) {
+    warnings.push(`Không chạy được docker để seed đơn hàng: ${result.error.message}`);
+    return false;
+  }
+  if (result.status !== 0) {
+    warnings.push(`Seed đơn hàng bằng SQL thất bại: ${(result.stderr || "").trim()}`);
+    return false;
+  }
+  if (result.stdout) process.stdout.write(result.stdout);
+  return true;
 }
 
 async function ensureApprovedShop(shop, token, adminToken) {
@@ -610,6 +655,14 @@ async function main() {
       `(${address.created ? "tạo mới" : "đã có"})`,
   );
 
+  const ordersSeeded = applyDemoOrdersSql();
+  summary.ordersSeeded = ordersSeeded;
+  console.log(
+    ordersSeeded
+      ? "✓ Đã bổ sung đơn hàng, payment và review demo (SQL local)"
+      : "! Bỏ qua seed đơn hàng — xem cảnh báo bên dưới",
+  );
+
   if (warnings.length > 0) {
     console.log("\nCảnh báo:");
     for (const warning of warnings) console.log(`  ! ${warning}`);
@@ -619,6 +672,8 @@ async function main() {
   console.log(`Tài khoản demo (mật khẩu chung: ${DEMO_PASSWORD})`);
   for (const seller of SELLERS) console.log(`  Seller: ${seller.email}`);
   console.log(`  Buyer : ${BUYER.email}`);
+  console.log("  Buyer2: buyer2.demo@markethub.vn");
+  console.log("  Seller chờ duyệt: seller.pending@markethub.vn");
   console.log(`  Admin : ${ADMIN_EMAIL} (mật khẩu lấy từ ADMIN_PASSWORD)`);
   console.log("\nMở http://localhost:5173 để xem sản phẩm mẫu, hoặc đăng nhập buyer để thử checkout nhiều shop.");
   return summary;
